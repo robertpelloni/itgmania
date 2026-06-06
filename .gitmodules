@@ -2,51 +2,10 @@
 	path = Themes/Simply Love
 	url = https://github.com/Simply-Love/Simply-Love-SM5.git
 	shallow = true
-[submodule "extern/ixwebsocket"]
-	path = extern/IXWebSocket
-	url = https://github.com/machinezone/IXWebSocket.git
+[submodule "Themes/Simply-Love-SM5"]
+	path = Themes/Simply-Love-SM5
+	url = https://github.com/robertpelloni/Simply-Love-SM5.git
 	shallow = true
-[submodule "extern/mbedtls"]
-	path = extern/mbedtls
-	url = https://github.com/Mbed-TLS/mbedtls.git
-	shallow = true
-[submodule "extern/zlib"]
-	path = extern/zlib
-	url = https://github.com/madler/zlib.git
-	shallow = true
-[submodule "extern/ffmpeg"]
-	path = extern/ffmpeg
-	url = https://github.com/FFmpeg/FFmpeg.git
-	shallow = true
-[submodule "extern/libpng"]
-	path = extern/libpng
-	url = https://github.com/pnggroup/libpng.git
-	shallow = true
-[submodule "extern/ogg"]
-	path = extern/ogg
-	url = https://github.com/xiph/ogg.git
-	shallow = true
-[submodule "extern/vorbis"]
-	path = extern/vorbis
-	url = https://github.com/xiph/vorbis.git
-	shallow = true
-[submodule "extern/libtommath"]
-	path = extern/libtommath
-	url = https://github.com/libtom/libtommath.git
-	shallow = true
-[submodule "extern/libtomcrypt"]
-	path = extern/libtomcrypt
-	url = https://github.com/libtom/libtomcrypt.git
-	shallow = true
-[submodule "extern/libusb"]
-	path = extern/libusb
-	url = https://github.com/libusb/libusb-cmake.git
-	shallow = true
-[submodule "extern/libjpeg-turbo"]
-	path = extern/libjpeg-turbo
-	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
-	shallow = true
-[submodule "extern/hidapi"]
-	path = extern/hidapi
-	url = https://github.com/libusb/hidapi.git
-	shallow = true
+[submodule "bobcoin"]
+	path = bobcoin
+	url = https://github.com/robertpelloni/bobcoin
