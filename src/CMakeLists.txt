@@ -622,3 +622,16 @@ if(WITH_CLUB_FANTASTIC)
             DESTINATION "${SM_INSTALL_DESTINATION}/Songs")
   endif()
 endif()
+
+# Integrate Rust Core
+add_custom_target(rust_core_build
+  COMMAND cargo build --release
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/rust_core
+  BYPRODUCTS ${CMAKE_SOURCE_DIR}/src/rust_core/target/release/librust_core.a
+)
+
+add_library(RustCore STATIC IMPORTED)
+set_target_properties(RustCore PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/rust_core/target/release/librust_core.a)
+add_dependencies(RustCore rust_core_build)
+
+target_link_libraries("${SM_EXE_NAME}" RustCore)

@@ -45,6 +45,16 @@
  * @param reason the crash reason as determined by prior function calls.
  * @return nothing: there is no escape without quitting the program.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void rust_sm_crash(const char* reason);
+
+#ifdef __cplusplus
+}
+#endif
+
 [[noreturn]]
 void sm_crash(const std::string& reason);
 [[noreturn]]
