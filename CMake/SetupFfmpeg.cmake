@@ -18,7 +18,6 @@ list(APPEND FFMPEG_CONFIGURE
             "--disable-filters"
             "--disable-lzma"
             "--disable-network"
-            "--disable-postproc"
             "--disable-programs"
             "--disable-swresample"
             "--disable-vaapi"
