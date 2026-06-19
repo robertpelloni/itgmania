@@ -633,7 +633,8 @@ std::string MovieDecoder_FFMpeg::OpenCodec() {
 
   ASSERT(av_stream_ != nullptr);
   if (av_stream_codec_ && av_stream_codec_->codec) {
-    avcodec::AVCodecContext* new_context = avcodec::avcodec_alloc_context3(nullptr);
+    avcodec::AVCodecContext* new_context =
+        avcodec::avcodec_alloc_context3(nullptr);
     avcodec::avcodec_parameters_to_context(new_context, av_stream_->codecpar);
     avcodec::avcodec_free_context(&av_stream_codec_);
     av_stream_codec_ = new_context;
