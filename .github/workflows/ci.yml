@@ -44,7 +44,7 @@ jobs:
         with:
           submodules: true
       - name: Fetch external dependencies
-        run: ./fetch-extern-deps.sh
+        run: bash ./fetch-extern-deps.sh
       - name: Install dependencies
         if: matrix.os != 'windows-2022'
         run: ${{ matrix.install }}

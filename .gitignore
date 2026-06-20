@@ -106,3 +106,4 @@ BuildLog.htm
 *.pc
 *.d
 *.lastcodeanalysissucceeded
+build/
