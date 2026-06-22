@@ -7,3 +7,4 @@
 * Repaired the `SWS_BICUBIC` C-macro compilation failure in `MovieTexture_FFMpeg.h`.
 * Bumped version to `1.0.1` and pushed to the current branch.
 * Ready to proceed with structural gap analysis or further feature work.
+* Extracted knowledge about the project and committed updates to IDEAS.md and TODO.md for future continuous loops.
