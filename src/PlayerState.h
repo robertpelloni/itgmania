@@ -45,7 +45,7 @@ class PlayerState {
   /**
    * @brief The PlayerNumber assigned to this Player: usually 1 or 2.
    *
-   * TODO: Remove use of PlayerNumber.  All data about the player should live
+   * All data about the player should live
    * in PlayerState and callers should not use PlayerNumber to index into
    * GameState. */
   PlayerNumber m_PlayerNumber;
