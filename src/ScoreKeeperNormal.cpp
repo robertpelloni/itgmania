@@ -614,8 +614,6 @@ void ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow) {
     MESSAGEMAN->Broadcast(msg);
   }
 
-  // TODO: Remove indexing with PlayerNumber
-  PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
   float offset = NoteDataWithScoring::LastTapNoteWithResult(nd, iRow)
                      .result.fTapNoteOffset;
   Message msg("ScoreChanged");
@@ -640,8 +638,6 @@ void ScoreKeeperNormal::HandleHoldScore(const TapNote& tn) {
 
   AddHoldScore(holdScore);
 
-  // TODO: Remove indexing with PlayerNumber
-  PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
   Message msg("ScoreChanged");
   msg.SetParam("PlayerNumber", m_pPlayerState->m_PlayerNumber);
   msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);
