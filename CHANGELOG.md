@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.70.0] - 2026-06-27
+### Security
+- Verified dependency tree integrity.
+- Scanned for outstanding basic structural vulnerabilities (None surfaced in immediate memory tools analysis).
+
 ## [5.69.0] - 2026-06-27
 ### Protocol 59
 - Initiated Executive Protocol 59 synchronization sequence.
