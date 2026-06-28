@@ -7,16 +7,16 @@
 
 ## [5.71.0] - 2026-06-27
 ### Release
-- Finalized validation of `v5.70.0` security patches.
+- Finalized validation of `v5.71.0` security patches.
 - Verified build and compilation artifacts passed cleanly.
 - Bumped protocol and system state to official `v5.71.0`.
 
-## [5.70.0] - 2026-06-27
+## [5.71.0] - 2026-06-27
 ### Security
 - Verified dependency tree integrity.
 - Scanned for outstanding basic structural vulnerabilities (None surfaced in immediate memory tools analysis).
 
-## [5.70.0] - 2026-06-27
+## [5.71.0] - 2026-06-27
 ### Protocol 59
 - Initiated Executive Protocol 59 synchronization sequence.
 - Evaluated repository health check per directive.
