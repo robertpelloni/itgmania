@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.72.0] - 2026-06-28
+### Security
+- Validated post-v5.71.0 deployment sequence stability via autonomous loop execution.
+- Extracted and tracked remaining UI representations.
+
+## [5.71.0] - 2026-06-27
+### Release
+- Finalized validation of `v5.70.0` security patches.
+- Verified build and compilation artifacts passed cleanly.
+- Bumped protocol and system state to official `v5.71.0`.
+
 ## [5.70.0] - 2026-06-27
 ### Security
 - Verified dependency tree integrity.
