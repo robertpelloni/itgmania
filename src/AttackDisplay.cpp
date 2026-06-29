@@ -39,7 +39,7 @@ AttackDisplay::AttackDisplay() {
 void AttackDisplay::Init(const PlayerState* pPlayerState) {
   m_pPlayerState = pPlayerState;
 
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+  // TODO: Remove use of PlayerNumber.
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
   m_sprAttack.SetName(ssprintf("TextP%d", pn + 1));
 
@@ -114,7 +114,7 @@ void AttackDisplay::SetAttack(const std::string& sText) {
   m_sprAttack.SetDiffuseAlpha(1);
   m_sprAttack.Load(path);
 
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+  // TODO: Remove use of PlayerNumber.
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
   const std::string sName = ssprintf("%sP%i", sText.c_str(), pn + 1);

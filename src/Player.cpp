@@ -459,7 +459,7 @@ void Player::Init(
         fLife, STATSMAN->m_CurStageStats.m_fStepsSeconds);
   }
 
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+  // TODO: Remove use of PlayerNumber.
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
   RageSoundLoadParams SoundParams;
@@ -704,7 +704,7 @@ void Player::Load() {
   m_iFirstUncrossedRow = iNoteRow - 1;
   m_pJudgedRows->Reset(iNoteRow);
 
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+  // TODO: Remove use of PlayerNumber.
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
   bool bOniDead =
@@ -1060,7 +1060,7 @@ void Player::Update(float fDeltaTime) {
   for (int col = 0; col < iNumCols; ++col) {
     ASSERT(m_pPlayerState != nullptr);
 
-    // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+    // TODO: Remove use of PlayerNumber.
     std::vector<GameInput> GameI;
     GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
         ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
@@ -1441,7 +1441,7 @@ void Player::UpdateHoldNotes(
         (iStartRow + trtn.pTN->iDuration) > iSongRow) {
       int iTrack = trtn.iTrack;
 
-      // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+      // TODO: Remove use of PlayerNumber.
       PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
       if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
@@ -1722,7 +1722,7 @@ void Player::ApplyWaitingTransforms() {
 }
 
 void Player::DrawPrimitives() {
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+  // TODO: Remove use of PlayerNumber.
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
   // May have both players in doubles (for battle play); only draw primary
@@ -2125,7 +2125,7 @@ void Player::DoTapScoreNone() {
   if (m_pLifeMeter) {
     m_pLifeMeter->HandleTapScoreNone();
   }
-  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol)
+  // TODO: Remove use of PlayerNumber
   PlayerNumber pn = PLAYER_INVALID;
   if (m_pCombinedLifeMeter) {
     m_pCombinedLifeMeter->HandleTapScoreNone(pn);
@@ -2616,7 +2616,7 @@ void Player::Step(
           -1,  // now
           pTN->fAttackDurationSeconds, pTN->sAttackModifiers, true, false);
 
-      // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol)
+      // TODO: Remove use of PlayerNumber
       PlayerNumber pnToAttack = OPPOSITE_PLAYER[m_pPlayerState->m_PlayerNumber];
       PlayerState* pPlayerStateToAttack = GAMESTATE->m_pPlayerState[pnToAttack];
       pPlayerStateToAttack->LaunchAttack(attack);
@@ -3065,7 +3065,7 @@ void Player::CrossedRows(int iLastRowCrossed, const RageTimer& now) {
       }
       case TapNoteType_Mine: {
         // Hold the panel while crossing a mine will cause the mine to explode
-        // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
+        // TODO: Remove use of PlayerNumber.
         PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
         std::vector<GameInput> GameI;
         GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
