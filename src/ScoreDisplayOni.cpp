@@ -34,7 +34,7 @@ void ScoreDisplayOni::Init(
 void ScoreDisplayOni::Update(float fDelta) {
   ScoreDisplay::Update(fDelta);
 
-  // TODO: Remove use of PlayerNumber.
+  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
 
   float fSecsIntoPlay = 0;

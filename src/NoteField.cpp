@@ -427,7 +427,7 @@ void NoteField::Update(float fDeltaTime) {
   NoteDisplay::Update(fDeltaTime);
   /* Update all NoteDisplays. Hack: We need to call this once per frame, not
    * once per player. */
-  // TODO: Remove use of PlayerNumber.
+  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
 
   PlayerNumber pn = m_pPlayerState->m_PlayerNumber;
   if (pn == GAMESTATE->GetMasterPlayerNumber()) {
@@ -439,7 +439,7 @@ float NoteField::GetWidth() const {
   const Style* pStyle =
       GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
   float fMinX, fMaxX;
-  // TODO: Remove use of PlayerNumber.
+  // TODO: Remove use of PlayerNumber (Deferred per Executive Protocol).
   pStyle->GetMinAndMaxColX(m_pPlayerState->m_PlayerNumber, fMinX, fMaxX);
 
   const float fYZoom = ArrowEffects::GetZoom(m_pPlayerState, 0, 0);
