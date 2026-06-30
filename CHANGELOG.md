@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.77.0] - 2026-06-28
+## [5.78.0] - 2026-06-28
 ### Security
 - Validated post-v5.71.0 deployment sequence stability via autonomous loop execution.
 - Extracted and tracked remaining UI representations.
