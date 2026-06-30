@@ -9,3 +9,6 @@
 [submodule "bobcoin"]
 	path = bobcoin
 	url = https://github.com/robertpelloni/bobcoin
+[submodule "extern/IXWebSocket"]
+	path = extern/IXWebSocket
+	url = https://github.com/machinezone/IXWebSocket.git
