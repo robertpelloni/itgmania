@@ -30,6 +30,9 @@ using CrashHandler::IsDebuggerPresent;
 void sm_crash(const std::string& s) { sm_crash(s.c_str()); }
 
 void sm_crash(const char* reason) {
+  // Call into our new Rust port for logging/instrumentation
+  rust_sm_crash(reason);
+
 #if (defined(_WIN32) && defined(CRASH_HANDLER)) || defined(MACOSX) || \
     defined(_XDBG)
   /* If we're being debugged, throw a debug break so it'll suspend the process.
