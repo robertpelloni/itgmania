@@ -106,3 +106,8 @@ BuildLog.htm
 *.pc
 *.d
 *.lastcodeanalysissucceeded
+build/
+extern/mbedtls/tf-psa-crypto/framework/
+build
+build/
+src/rust_core/target/
