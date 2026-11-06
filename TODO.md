@@ -1,6 +1,4 @@
 # TODO
-- [x] Set up Rust crate `rust_core` in `src`.
-- [x] Integrate Rust compilation into `src/CMakeLists.txt`.
-- [x] Port `sm_crash` from `src/global.cpp` to Rust (`rust_sm_crash`).
+- [x] Configure CI workflow to run `fetch-extern-deps.sh`.
+- [x] Enhance Rust core crash handler `rust_sm_crash` and add unit tests.
 - [ ] Port additional utility and logging functions to Rust.
-- [ ] Port data structures and math routines to Rust core.
