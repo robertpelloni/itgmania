@@ -50,6 +50,8 @@ extern "C" {
 #endif
 
 void rust_sm_crash(const char* reason);
+int rust_format_log_location(
+    const char* file, int line, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

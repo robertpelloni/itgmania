@@ -5,4 +5,5 @@ Session goals:
 
 Current status:
 - `bobcoin` subproject updated to v8.115.0 with full test passes and unified command center.
-- `itgmania` subproject has Rust core integration in `src/rust_core`.
+- `itgmania` subproject has Rust core integration in `src/rust_core` with `rust_sm_crash` and `rust_format_log_location` integrated into `src/RageLog.cpp` and `src/global.cpp`.
+- External CMake scripts (`extern/CMakeLists.txt`, `extern/CMakeProject-*.cmake`) and CI workflow `fetch-extern-deps.sh` configured.
