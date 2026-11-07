@@ -472,7 +472,8 @@ void ShowWarningOrTrace(
     const char* file, int line, const char* message, bool bWarning) {
   char location[256];
   if (rust_format_log_location(file, line, location, sizeof(location)) < 0) {
-    snprintf(location, sizeof(location), "%s:%i", file ? file : "unknown", line);
+    snprintf(
+        location, sizeof(location), "%s:%i", file ? file : "unknown", line);
   }
 
   void (RageLog::*method)(const char* fmt, ...) =
