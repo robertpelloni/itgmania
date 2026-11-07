@@ -5,3 +5,4 @@
 - Enhanced `rust_sm_crash` handler in `src/rust_core` with structured diagnostics and unit tests.
 - Implemented `rust_format_log_location` in Rust core (`src/rust_core`) with comprehensive unit tests and wired into `ShowWarningOrTrace` in `src/RageLog.cpp`.
 - Implemented `rust_timer_difference` and `rust_timer_sum` in Rust core (`src/rust_core`) with comprehensive unit tests and wired into `RageTimer::Difference` and `RageTimer::Sum` in `src/RageTimer.cpp`.
+- Implemented `rust_clamp_f32`, `rust_clamp_f64`, and `rust_clamp_i32` in Rust core (`src/rust_core`) with unit tests and specialized `rage_clamp` overloads in `src/RageUtil.h`.

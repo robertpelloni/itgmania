@@ -120,6 +120,42 @@ pub extern "C" fn rust_timer_sum(
     }
 }
 
+/// Clamps a 32-bit floating-point value to the range [l, h].
+#[no_mangle]
+pub extern "C" fn rust_clamp_f32(val: f32, l: f32, h: f32) -> f32 {
+    if val > h {
+        h
+    } else if val < l {
+        l
+    } else {
+        val
+    }
+}
+
+/// Clamps a 64-bit floating-point value to the range [l, h].
+#[no_mangle]
+pub extern "C" fn rust_clamp_f64(val: f64, l: f64, h: f64) -> f64 {
+    if val > h {
+        h
+    } else if val < l {
+        l
+    } else {
+        val
+    }
+}
+
+/// Clamps a 32-bit signed integer value to the range [l, h].
+#[no_mangle]
+pub extern "C" fn rust_clamp_i32(val: i32, l: i32, h: i32) -> i32 {
+    if val > h {
+        h
+    } else if val < l {
+        l
+    } else {
+        val
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,15 +211,12 @@ mod tests {
 
     #[test]
     fn test_rust_timer_difference() {
-        // Simple 1.5 second difference
         let diff = rust_timer_difference(10, 500_000, 9, 0);
         assert!((diff - 1.5).abs() < 1e-6);
 
-        // Difference with microsecond borrow
         let diff_borrow = rust_timer_difference(10, 100_000, 9, 500_000);
         assert!((diff_borrow - 0.6).abs() < 1e-6);
 
-        // Reverse difference (negative)
         let diff_neg = rust_timer_difference(9, 500_000, 10, 100_000);
         assert!((diff_neg - (-0.6)).abs() < 1e-6);
     }
@@ -193,22 +226,36 @@ mod tests {
         let mut out_secs = 0u64;
         let mut out_us = 0u64;
 
-        // Add 2.25s to (5, 500_000) -> (7, 750_000)
         rust_timer_sum(5, 500_000, 2.25, &mut out_secs, &mut out_us);
         assert_eq!(out_secs, 7);
         assert_eq!(out_us, 750_000);
 
-        // Add duration with microsecond overflow
         rust_timer_sum(5, 800_000, 0.5, &mut out_secs, &mut out_us);
         assert_eq!(out_secs, 6);
         assert_eq!(out_us, 300_000);
 
-        // Subtract duration
         rust_timer_sum(5, 200_000, -0.5, &mut out_secs, &mut out_us);
         assert_eq!(out_secs, 4);
         assert_eq!(out_us, 700_000);
 
-        // Null pointer safety
         rust_timer_sum(5, 200_000, 1.0, std::ptr::null_mut(), std::ptr::null_mut());
+    }
+
+    #[test]
+    fn test_rust_clamp() {
+        // f32
+        assert_eq!(rust_clamp_f32(0.5, 0.0, 1.0), 0.5);
+        assert_eq!(rust_clamp_f32(-0.5, 0.0, 1.0), 0.0);
+        assert_eq!(rust_clamp_f32(1.5, 0.0, 1.0), 1.0);
+
+        // f64
+        assert_eq!(rust_clamp_f64(50.0, 10.0, 100.0), 50.0);
+        assert_eq!(rust_clamp_f64(5.0, 10.0, 100.0), 10.0);
+        assert_eq!(rust_clamp_f64(150.0, 10.0, 100.0), 100.0);
+
+        // i32
+        assert_eq!(rust_clamp_i32(5, 0, 10), 5);
+        assert_eq!(rust_clamp_i32(-5, 0, 10), 0);
+        assert_eq!(rust_clamp_i32(15, 0, 10), 10);
     }
 }

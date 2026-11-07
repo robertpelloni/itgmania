@@ -78,6 +78,33 @@ inline bool rage_clamp(T& x, U l, V h) {
   return false;
 }
 
+inline bool rage_clamp(float& x, float l, float h) {
+  float clamped = rust_clamp_f32(x, l, h);
+  if (clamped != x) {
+    x = clamped;
+    return true;
+  }
+  return false;
+}
+
+inline bool rage_clamp(double& x, double l, double h) {
+  double clamped = rust_clamp_f64(x, l, h);
+  if (clamped != x) {
+    x = clamped;
+    return true;
+  }
+  return false;
+}
+
+inline bool rage_clamp(int& x, int l, int h) {
+  int clamped = rust_clamp_i32(x, l, h);
+  if (clamped != x) {
+    x = clamped;
+    return true;
+  }
+  return false;
+}
+
 template <class T>
 inline bool enum_clamp(T& x, T l, T h) {
   if (x > h) {
@@ -445,9 +472,8 @@ bool BeginsWith(const std::string& sTestThis, const std::string& sBeginning);
 bool EndsWith(const std::string& sTestThis, const std::string& sEnding);
 std::string URLEncode(const std::string& sStr);
 
-void StripCvsAndSvn(
-    std::vector<std::string>&
-        vs);  // Removes various versioning system metafolders.
+void StripCvsAndSvn(std::vector<std::string>&
+                        vs);  // Removes various versioning system metafolders.
 void StripMacResourceForks(
     std::vector<std::string>& vs);  // Removes files starting with "._"
 

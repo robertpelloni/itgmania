@@ -57,6 +57,9 @@ double rust_timer_difference(
 void rust_timer_sum(
     uint64_t lhs_secs, uint64_t lhs_us, float tm, uint64_t* out_secs,
     uint64_t* out_us);
+float rust_clamp_f32(float val, float l, float h);
+double rust_clamp_f64(double val, double l, double h);
+int32_t rust_clamp_i32(int32_t val, int32_t l, int32_t h);
 
 #ifdef __cplusplus
 }
