@@ -52,6 +52,11 @@ extern "C" {
 void rust_sm_crash(const char* reason);
 int rust_format_log_location(
     const char* file, int line, char* out_buf, size_t out_buf_len);
+double rust_timer_difference(
+    uint64_t lhs_secs, uint64_t lhs_us, uint64_t rhs_secs, uint64_t rhs_us);
+void rust_timer_sum(
+    uint64_t lhs_secs, uint64_t lhs_us, float tm, uint64_t* out_secs,
+    uint64_t* out_us);
 
 #ifdef __cplusplus
 }
