@@ -470,19 +470,19 @@ void ShowWarningOrTrace(
 
 void ShowWarningOrTrace(
     const char* file, int line, const char* message, bool bWarning) {
-  /* Ignore everything up to and including the first "src/". */
-  const char* temp = strstr(file, "src/");
-  if (temp) {
-    file = temp + 4;
+  char location[256];
+  if (rust_format_log_location(file, line, location, sizeof(location)) < 0) {
+    snprintf(
+        location, sizeof(location), "%s:%i", file ? file : "unknown", line);
   }
 
   void (RageLog::*method)(const char* fmt, ...) =
       bWarning ? &RageLog::Warn : &RageLog::Trace;
 
   if (LOG) {
-    (LOG->*method)("%s:%i: %s", file, line, message);
+    (LOG->*method)("%s: %s", location, message);
   } else {
-    fprintf(stderr, "%s:%i: %s\n", file, line, message);
+    fprintf(stderr, "%s: %s\n", location, message);
   }
 }
 

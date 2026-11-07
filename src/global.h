@@ -50,6 +50,16 @@ extern "C" {
 #endif
 
 void rust_sm_crash(const char* reason);
+int rust_format_log_location(
+    const char* file, int line, char* out_buf, size_t out_buf_len);
+double rust_timer_difference(
+    uint64_t lhs_secs, uint64_t lhs_us, uint64_t rhs_secs, uint64_t rhs_us);
+void rust_timer_sum(
+    uint64_t lhs_secs, uint64_t lhs_us, float tm, uint64_t* out_secs,
+    uint64_t* out_us);
+float rust_clamp_f32(float val, float l, float h);
+double rust_clamp_f64(double val, double l, double h);
+int32_t rust_clamp_i32(int32_t val, int32_t l, int32_t h);
 
 #ifdef __cplusplus
 }
