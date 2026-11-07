@@ -4,6 +4,28 @@ use std::os::raw::c_char;
 const ONE_SECOND_IN_MICROSECONDS: u64 = 1_000_000;
 const ONE_SECOND_IN_MICROSECONDS_F64: f64 = 1_000_000.0;
 
+// Precomputed IEEE 802.3 CRC32 lookup table (polynomial 0xEDB88320)
+const CRC32_TABLE: [u32; 256] = {
+    let mut table = [0u32; 256];
+    let poly = 0xEDB88320u32;
+    let mut i = 0;
+    while i < 256 {
+        let mut crc = i as u32;
+        let mut j = 0;
+        while j < 8 {
+            if (crc & 1) != 0 {
+                crc = (crc >> 1) ^ poly;
+            } else {
+                crc >>= 1;
+            }
+            j += 1;
+        }
+        table[i] = crc;
+        i += 1;
+    }
+    table
+};
+
 /// Safe handler invoked on fatal crashes or assertion failures in ITGmania.
 /// Logs crash diagnostics with timestamp and process info before aborting.
 #[no_mangle]
@@ -236,6 +258,22 @@ pub extern "C" fn rust_strip_crnl(data: *mut c_char, mut len: usize) -> usize {
     len
 }
 
+/// Calculates or updates an IEEE 802.3 CRC32 checksum over `buf`.
+/// Pre- and post-conditioned with 0xFFFFFFFF matching standard StepMania/ITGmania `CRC32`.
+#[no_mangle]
+pub extern "C" fn rust_crc32(mut crc: u32, buf: *const u8, size: usize) -> u32 {
+    if buf.is_null() || size == 0 {
+        return crc;
+    }
+
+    crc ^= 0xFFFFFFFF;
+    let slice = unsafe { std::slice::from_raw_parts(buf, size) };
+    for &b in slice {
+        crc = (crc >> 8) ^ CRC32_TABLE[((crc as u8) ^ b) as usize];
+    }
+    crc ^ 0xFFFFFFFF
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -379,5 +417,24 @@ mod tests {
 
         let null_res = rust_strip_crnl(std::ptr::null_mut(), 10);
         assert_eq!(null_res, 0);
+    }
+
+    #[test]
+    fn test_rust_crc32() {
+        // Standard test vector: "123456789" -> 0xCBF43926
+        let input = b"123456789";
+        let crc = rust_crc32(0, input.as_ptr(), input.len());
+        assert_eq!(crc, 0xCBF43926);
+
+        // Empty buffer returns initial crc
+        let empty_crc = rust_crc32(12345, std::ptr::null(), 0);
+        assert_eq!(empty_crc, 12345);
+
+        // Incremental computation
+        let part1 = b"12345";
+        let part2 = b"6789";
+        let mut inc_crc = rust_crc32(0, part1.as_ptr(), part1.len());
+        inc_crc = rust_crc32(inc_crc, part2.as_ptr(), part2.len());
+        assert_eq!(inc_crc, 0xCBF43926);
     }
 }

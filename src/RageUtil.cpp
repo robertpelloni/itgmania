@@ -842,32 +842,7 @@ std::string GetCwd() {
  *   http://www.faqs.org/rfcs/rfc1952.html
  */
 void CRC32(unsigned int& iCRC, const void* pVoidBuffer, size_t iSize) {
-  static unsigned tab[256];
-  static std::atomic<bool> initted = false;
-  if (!initted.load(std::memory_order_acquire)) {
-    const unsigned POLY = 0xEDB88320;
-
-    for (int i = 0; i < 256; ++i) {
-      tab[i] = i;
-      for (int j = 0; j < 8; ++j) {
-        if (tab[i] & 1) {
-          tab[i] = (tab[i] >> 1) ^ POLY;
-        } else {
-          tab[i] >>= 1;
-        }
-      }
-    }
-    initted.store(true, std::memory_order_release);
-  }
-
-  iCRC ^= 0xFFFFFFFF;
-
-  const char* pBuffer = (const char*)pVoidBuffer;
-  for (unsigned i = 0; i < iSize; ++i) {
-    iCRC = (iCRC >> 8) ^ tab[(iCRC ^ pBuffer[i]) & 0xFF];
-  }
-
-  iCRC ^= 0xFFFFFFFF;
+  iCRC = rust_crc32(iCRC, pVoidBuffer, iSize);
 }
 
 unsigned int GetHashForString(const std::string& s) {

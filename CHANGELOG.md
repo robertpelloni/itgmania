@@ -8,3 +8,4 @@
 - Implemented `rust_clamp_f32`, `rust_clamp_f64`, and `rust_clamp_i32` in Rust core (`src/rust_core`) with unit tests, preserving C++ inline templates for performance.
 - Implemented `rust_url_encode` in Rust core (`src/rust_core`) with unit tests and wired into `URLEncode` in `src/RageUtil.cpp`.
 - Implemented `rust_strip_crnl` in Rust core (`src/rust_core`) with unit tests and wired into `StripCrnl` in `src/RageUtil.cpp`.
+- Implemented `rust_crc32` in Rust core (`src/rust_core`) with precomputed lookup table and unit tests, and wired into `CRC32` in `src/RageUtil.cpp`.
