@@ -1036,16 +1036,16 @@ bool EndsWith(const std::string& sTestThis, const std::string& sEnding) {
 }
 
 std::string URLEncode(const std::string& sStr) {
-  std::string sOutput;
-  for (unsigned k = 0; k < sStr.size(); k++) {
-    char t = sStr[k];
-    if (t >= '!' && t <= 'z') {
-      sOutput += t;
-    } else {
-      sOutput += "%" + ssprintf("%02X", t);
-    }
+  if (sStr.empty()) {
+    return "";
   }
-  return sOutput;
+  // Max possible size is 3 times input size + 1 for null terminator
+  std::vector<char> buf(sStr.size() * 3 + 1);
+  int written = rust_url_encode(sStr.c_str(), buf.data(), buf.size());
+  if (written >= 0) {
+    return std::string(buf.data(), written);
+  }
+  return sStr;
 }
 
 // remove various version control-related files

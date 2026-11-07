@@ -156,6 +156,63 @@ pub extern "C" fn rust_clamp_i32(val: i32, l: i32, h: i32) -> i32 {
     }
 }
 
+/// Encodes a C-string `input` into URL percent-encoded format matching ITGmania's URLEncode semantics:
+/// characters between '!' and 'z' inclusive are kept as-is, while all others are encoded as `%XX`.
+///
+/// Returns the number of bytes written (excluding null terminator), or -1 if `out_buf` is null
+/// or too small.
+#[no_mangle]
+pub extern "C" fn rust_url_encode(
+    input: *const c_char,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if input.is_null() {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let input_bytes = unsafe { CStr::from_ptr(input).to_bytes() };
+    let mut written = 0usize;
+
+    for &b in input_bytes {
+        if (b'!'..=b'z').contains(&b) {
+            if written + 1 >= out_buf_len {
+                return -1;
+            }
+            unsafe {
+                *out_buf.add(written) = b as c_char;
+            }
+            written += 1;
+        } else {
+            if written + 3 >= out_buf_len {
+                return -1;
+            }
+            let hex_high = b >> 4;
+            let hex_low = b & 0x0F;
+            let to_hex_ascii = |n: u8| -> u8 {
+                if n < 10 { b'0' + n } else { b'A' + (n - 10) }
+            };
+            unsafe {
+                *out_buf.add(written) = b'%' as c_char;
+                *out_buf.add(written + 1) = to_hex_ascii(hex_high) as c_char;
+                *out_buf.add(written + 2) = to_hex_ascii(hex_low) as c_char;
+            }
+            written += 3;
+        }
+    }
+
+    unsafe {
+        *out_buf.add(written) = 0;
+    }
+
+    written as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -243,19 +300,45 @@ mod tests {
 
     #[test]
     fn test_rust_clamp() {
-        // f32
         assert_eq!(rust_clamp_f32(0.5, 0.0, 1.0), 0.5);
         assert_eq!(rust_clamp_f32(-0.5, 0.0, 1.0), 0.0);
         assert_eq!(rust_clamp_f32(1.5, 0.0, 1.0), 1.0);
 
-        // f64
         assert_eq!(rust_clamp_f64(50.0, 10.0, 100.0), 50.0);
         assert_eq!(rust_clamp_f64(5.0, 10.0, 100.0), 10.0);
         assert_eq!(rust_clamp_f64(150.0, 10.0, 100.0), 100.0);
 
-        // i32
         assert_eq!(rust_clamp_i32(5, 0, 10), 5);
         assert_eq!(rust_clamp_i32(-5, 0, 10), 0);
         assert_eq!(rust_clamp_i32(15, 0, 10), 10);
+    }
+
+    #[test]
+    fn test_rust_url_encode() {
+        let mut buf = [0 as c_char; 256];
+
+        // "Hello World" -> "Hello%20World"
+        let input = CString::new("Hello World").unwrap();
+        let len = rust_url_encode(input.as_ptr(), buf.as_mut_ptr(), buf.len());
+        assert_eq!(len, "Hello%20World".len() as i32);
+        let out_str = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out_str, "Hello%20World");
+
+        // String with unreserved characters ('!' to 'z')
+        let input2 = CString::new("abcXYZ123-_.~").unwrap();
+        let _len2 = rust_url_encode(input2.as_ptr(), buf.as_mut_ptr(), buf.len());
+        let out_str2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out_str2, "abcXYZ123-_.%7E");
+
+        // Buffer too small
+        let mut small_buf = [0 as c_char; 5];
+        let len3 = rust_url_encode(input.as_ptr(), small_buf.as_mut_ptr(), small_buf.len());
+        assert_eq!(len3, -1);
+
+        // Null input
+        let len_null = rust_url_encode(std::ptr::null(), buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_null, 0);
+        let out_str_null = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out_str_null, "");
     }
 }

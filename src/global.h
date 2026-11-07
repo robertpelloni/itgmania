@@ -60,6 +60,7 @@ void rust_timer_sum(
 float rust_clamp_f32(float val, float l, float h);
 double rust_clamp_f64(double val, double l, double h);
 int32_t rust_clamp_i32(int32_t val, int32_t l, int32_t h);
+int rust_url_encode(const char* input, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }
