@@ -5,5 +5,5 @@ Session goals:
 
 Current status:
 - `bobcoin` subproject updated to v8.115.0 with full test passes and unified command center.
-- `itgmania` subproject has Rust core integration in `src/rust_core` with `rust_sm_crash`, `rust_format_log_location`, `rust_timer_difference`, `rust_timer_sum`, `rust_clamp_f32`, `rust_clamp_f64`, and `rust_clamp_i32` integrated into `src/RageLog.cpp`, `src/RageTimer.cpp`, `src/RageUtil.h`, and `src/global.h`.
+- `itgmania` subproject has Rust core integration in `src/rust_core` with `rust_sm_crash`, `rust_format_log_location`, `rust_timer_difference`, `rust_timer_sum`, and `rust_clamp_*` in `src/RageLog.cpp`, `src/RageTimer.cpp`, and `src/global.h` (preserving inline C++ templates in `RageUtil.h` for hot-path speed).
 - External CMake scripts (`extern/CMakeLists.txt`, `extern/CMakeProject-*.cmake`) and CI workflow `fetch-extern-deps.sh` configured.
