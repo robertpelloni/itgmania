@@ -1015,9 +1015,11 @@ void Trim(std::string& sStr, const char* s) {
 }
 
 void StripCrnl(std::string& s) {
-  while (s.size() && (s[s.size() - 1] == '\r' || s[s.size() - 1] == '\n')) {
-    s.erase(s.size() - 1);
+  if (s.empty()) {
+    return;
   }
+  size_t new_len = rust_strip_crnl(&s[0], s.size());
+  s.resize(new_len);
 }
 
 bool BeginsWith(const std::string& sTestThis, const std::string& sBeginning) {

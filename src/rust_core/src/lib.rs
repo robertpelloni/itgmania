@@ -213,6 +213,29 @@ pub extern "C" fn rust_url_encode(
     written as i32
 }
 
+/// Strips trailing carriage return (`\r`) and newline (`\n`) characters in-place from a mutable buffer.
+/// Returns the new trimmed length.
+#[no_mangle]
+pub extern "C" fn rust_strip_crnl(data: *mut c_char, mut len: usize) -> usize {
+    if data.is_null() || len == 0 {
+        return 0;
+    }
+
+    unsafe {
+        while len > 0 {
+            let last = *data.add(len - 1) as u8;
+            if last == b'\r' || last == b'\n' {
+                len -= 1;
+                *data.add(len) = 0;
+            } else {
+                break;
+            }
+        }
+    }
+
+    len
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -317,28 +340,44 @@ mod tests {
     fn test_rust_url_encode() {
         let mut buf = [0 as c_char; 256];
 
-        // "Hello World" -> "Hello%20World"
         let input = CString::new("Hello World").unwrap();
         let len = rust_url_encode(input.as_ptr(), buf.as_mut_ptr(), buf.len());
         assert_eq!(len, "Hello%20World".len() as i32);
         let out_str = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out_str, "Hello%20World");
 
-        // String with unreserved characters ('!' to 'z')
         let input2 = CString::new("abcXYZ123-_.~").unwrap();
         let _len2 = rust_url_encode(input2.as_ptr(), buf.as_mut_ptr(), buf.len());
         let out_str2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out_str2, "abcXYZ123-_.%7E");
 
-        // Buffer too small
         let mut small_buf = [0 as c_char; 5];
         let len3 = rust_url_encode(input.as_ptr(), small_buf.as_mut_ptr(), small_buf.len());
         assert_eq!(len3, -1);
 
-        // Null input
         let len_null = rust_url_encode(std::ptr::null(), buf.as_mut_ptr(), buf.len());
         assert_eq!(len_null, 0);
         let out_str_null = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out_str_null, "");
+    }
+
+    #[test]
+    fn test_rust_strip_crnl() {
+        let mut text = Vec::from(*b"hello world\r\n\0");
+        let new_len = rust_strip_crnl(text.as_mut_ptr() as *mut c_char, 13);
+        assert_eq!(new_len, 11);
+        assert_eq!(&text[..11], b"hello world");
+
+        let mut text_mult = Vec::from(*b"multiple\r\n\r\r\n\0");
+        let new_len_mult = rust_strip_crnl(text_mult.as_mut_ptr() as *mut c_char, 13);
+        assert_eq!(new_len_mult, 8);
+        assert_eq!(&text_mult[..8], b"multiple");
+
+        let mut no_nl = Vec::from(*b"simple\0");
+        let new_len_none = rust_strip_crnl(no_nl.as_mut_ptr() as *mut c_char, 6);
+        assert_eq!(new_len_none, 6);
+
+        let null_res = rust_strip_crnl(std::ptr::null_mut(), 10);
+        assert_eq!(null_res, 0);
     }
 }
