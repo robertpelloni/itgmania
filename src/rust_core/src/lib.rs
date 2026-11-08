@@ -385,6 +385,66 @@ pub extern "C" fn rust_binary_to_hex(
     (len * 2) as i32
 }
 
+/// Returns true if all characters in `str_ptr` are valid hexadecimal digits `[0-9a-fA-F]`,
+/// and `len > 0`.
+#[no_mangle]
+pub extern "C" fn rust_is_hex_val(str_ptr: *const c_char, len: usize) -> bool {
+    if str_ptr.is_null() || len == 0 {
+        return false;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(str_ptr as *const u8, len) };
+    slice.iter().all(|&b| b.is_ascii_hexdigit())
+}
+
+/// Decodes an even-length hexadecimal string `hex_str` into raw bytes in `out_buf`.
+/// Returns the number of bytes written, or -1 on failure (odd length, invalid hex, buffer too small).
+#[no_mangle]
+pub extern "C" fn rust_hex_to_binary(
+    hex_str: *const c_char,
+    len: usize,
+    out_buf: *mut u8,
+    out_buf_len: usize,
+) -> i32 {
+    if hex_str.is_null() || out_buf.is_null() {
+        return -1;
+    }
+
+    if len == 0 {
+        return 0;
+    }
+
+    if len % 2 != 0 || out_buf_len < len / 2 {
+        return -1;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(hex_str as *const u8, len) };
+    let from_hex = |b: u8| -> Option<u8> {
+        match b {
+            b'0'..=b'9' => Some(b - b'0'),
+            b'a'..=b'f' => Some(b - b'a' + 10),
+            b'A'..=b'F' => Some(b - b'A' + 10),
+            _ => None,
+        }
+    };
+
+    for i in 0..(len / 2) {
+        let hi = match from_hex(slice[i * 2]) {
+            Some(v) => v,
+            None => return -1,
+        };
+        let lo = match from_hex(slice[i * 2 + 1]) {
+            Some(v) => v,
+            None => return -1,
+        };
+        unsafe {
+            *out_buf.add(i) = (hi << 4) | lo;
+        }
+    }
+
+    (len / 2) as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -595,13 +655,32 @@ mod tests {
         let out_str = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out_str, "0012abff");
 
-        // Empty bytes
         let len_empty = rust_binary_to_hex(bytes.as_ptr(), 0, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_empty, 0);
 
-        // Buffer too small
-        let mut small_buf = [0 as c_char; 8]; // needs 9 bytes (8 chars + null)
+        let mut small_buf = [0 as c_char; 8];
         let len_small = rust_binary_to_hex(bytes.as_ptr(), bytes.len(), small_buf.as_mut_ptr(), small_buf.len());
         assert_eq!(len_small, -1);
+    }
+
+    #[test]
+    fn test_rust_hex_val_and_decode() {
+        let valid_hex = CString::new("12abCF").unwrap();
+        assert!(rust_is_hex_val(valid_hex.as_ptr(), 6));
+
+        let invalid_hex = CString::new("12gz").unwrap();
+        assert!(!rust_is_hex_val(invalid_hex.as_ptr(), 4));
+
+        let empty = CString::new("").unwrap();
+        assert!(!rust_is_hex_val(empty.as_ptr(), 0));
+
+        let mut out = [0u8; 3];
+        let count = rust_hex_to_binary(valid_hex.as_ptr(), 6, out.as_mut_ptr(), out.len());
+        assert_eq!(count, 3);
+        assert_eq!(out, [0x12, 0xAB, 0xCF]);
+
+        // Odd length fails
+        let odd_hex = CString::new("12a").unwrap();
+        assert_eq!(rust_hex_to_binary(odd_hex.as_ptr(), 3, out.as_mut_ptr(), out.len()), -1);
     }
 }

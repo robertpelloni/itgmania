@@ -70,6 +70,9 @@ void rust_trim_bounds(
     size_t* out_end);
 int rust_binary_to_hex(
     const void* data, size_t len, char* out_buf, size_t out_buf_len);
+bool rust_is_hex_val(const char* str_ptr, size_t len);
+int rust_hex_to_binary(
+    const char* hex_str, size_t len, uint8_t* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

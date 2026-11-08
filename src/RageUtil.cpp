@@ -98,18 +98,7 @@ bool IsAnInt(const std::string& s) {
 }
 
 bool IsHexVal(const std::string& s) {
-  if (!s.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < s.size(); ++i) {
-    if (!(s[i] >= '0' && s[i] <= '9') &&
-        !(toupper(s[i]) >= 'A' && toupper(s[i]) <= 'F')) {
-      return false;
-    }
-  }
-
-  return true;
+  return rust_is_hex_val(s.data(), s.size());
 }
 
 std::string BinaryToHex(const void* pData_, size_t iNumBytes) {
@@ -130,23 +119,11 @@ std::string BinaryToHex(const std::string& sString) {
 }
 
 bool HexToBinary(const std::string& s, unsigned char* stringOut) {
-  if (!IsHexVal(s)) {
+  if (stringOut == nullptr) {
     return false;
   }
-
-  for (int i = 0; true; i++) {
-    if ((int)s.size() <= i * 2) {
-      break;
-    }
-    std::string sByte = s.substr(i * 2, 2);
-
-    uint8_t val = 0;
-    if (sscanf(sByte.c_str(), "%hhx", &val) != 1) {
-      return false;
-    }
-    stringOut[i] = val;
-  }
-  return true;
+  int res = rust_hex_to_binary(s.data(), s.size(), stringOut, s.size() / 2);
+  return res >= 0;
 }
 
 bool HexToBinary(const std::string& s, std::string& sOut) {
