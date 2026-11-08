@@ -47,25 +47,11 @@ void UnicodeUpperLower(wchar_t*, size_t, const unsigned char*);
 
 void fapproach(float& val, float other_val, float to_move) {
   ASSERT_M(to_move >= 0, ssprintf("to_move: %f < 0", to_move));
-  if (val == other_val) {
-    return;
-  }
-  float fDelta = other_val - val;
-  float fSign = fDelta / std::abs(fDelta);
-  float fToMove = fSign * to_move;
-  if (std::abs(fToMove) > std::abs(fDelta)) {
-    fToMove = fDelta;  // snap
-  }
-  val += fToMove;
+  val = rust_fapproach(val, other_val, to_move);
 }
 
 /* Return a positive x mod y. */
-float fmodfp(float x, float y) {
-  x = std::fmod(x, y); /* x is [-y,y] */
-  x += y;              /* x is [0,y*2] */
-  x = std::fmod(x, y); /* x is [0,y] */
-  return x;
-}
+float fmodfp(float x, float y) { return rust_fmodfp(x, y); }
 
 /* https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2 */
 int power_of_two(int v) { return rust_power_of_two(v); }

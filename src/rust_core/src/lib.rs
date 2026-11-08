@@ -736,6 +736,38 @@ pub extern "C" fn rust_power_of_two(mut v: i32) -> i32 {
     v + if v == 0 { 1 } else { 0 }
 }
 
+/// Moves floating-point `val` towards `other_val` by at most `to_move`.
+/// Snaps to `other_val` if the remaining difference is smaller than `to_move`.
+#[no_mangle]
+pub extern "C" fn rust_fapproach(val: f32, other_val: f32, to_move: f32) -> f32 {
+    if val == other_val {
+        return val;
+    }
+
+    let delta = other_val - val;
+    let sign = if delta > 0.0 { 1.0f32 } else { -1.0f32 };
+    let step = sign * to_move;
+
+    if step.abs() > delta.abs() {
+        other_val
+    } else {
+        val + step
+    }
+}
+
+/// Returns a positive x mod y.
+/// Matches StepMania's `fmodfp`:
+/// x is brought to range [0, y).
+#[no_mangle]
+pub extern "C" fn rust_fmodfp(mut x: f32, y: f32) -> f32 {
+    if y == 0.0 {
+        return 0.0;
+    }
+    x %= y;
+    x += y;
+    x % y
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

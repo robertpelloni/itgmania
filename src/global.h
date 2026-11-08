@@ -86,6 +86,8 @@ int rust_splitpath(
     char* file_buf, size_t file_buf_len, char* ext_buf, size_t ext_buf_len);
 bool rust_is_an_int(const char* s, size_t len);
 int rust_power_of_two(int v);
+float rust_fapproach(float val, float other_val, float to_move);
+float rust_fmodfp(float x, float y);
 
 #ifdef __cplusplus
 }

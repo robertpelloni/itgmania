@@ -17,4 +17,5 @@
 - [x] Port path basename extraction (`rust_basename`) to Rust core and wire into `Basename` in `src/RageUtil.cpp`.
 - [x] Port path components decomposition (`rust_splitpath`) to Rust core and wire into `splitpath` in `src/RageUtil.cpp`.
 - [x] Port integer string validation (`rust_is_an_int`) and power of two rounding (`rust_power_of_two`) to Rust core and wire into `IsAnInt` and `power_of_two` in `src/RageUtil.cpp`.
+- [x] Port floating-point approach (`rust_fapproach`) and positive modulus (`rust_fmodfp`) to Rust core and wire into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.
