@@ -999,17 +999,12 @@ void StripCrnl(std::string& s) {
 
 bool BeginsWith(const std::string& sTestThis, const std::string& sBeginning) {
   ASSERT(!sBeginning.empty());
-  return sTestThis.compare(0, sBeginning.length(), sBeginning) == 0;
+  return rust_begins_with(sTestThis.c_str(), sBeginning.c_str());
 }
 
 bool EndsWith(const std::string& sTestThis, const std::string& sEnding) {
   ASSERT(!sEnding.empty());
-  if (sTestThis.size() < sEnding.size()) {
-    return false;
-  }
-  return sTestThis.compare(
-             sTestThis.length() - sEnding.length(), sEnding.length(),
-             sEnding) == 0;
+  return rust_ends_with(sTestThis.c_str(), sEnding.c_str());
 }
 
 std::string URLEncode(const std::string& sStr) {

@@ -63,6 +63,8 @@ int32_t rust_clamp_i32(int32_t val, int32_t l, int32_t h);
 int rust_url_encode(const char* input, char* out_buf, size_t out_buf_len);
 size_t rust_strip_crnl(char* data, size_t len);
 uint32_t rust_crc32(uint32_t initial_crc, const void* buf, size_t size);
+bool rust_begins_with(const char* test_str, const char* prefix);
+bool rust_ends_with(const char* test_str, const char* suffix);
 
 #ifdef __cplusplus
 }

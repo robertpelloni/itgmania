@@ -274,6 +274,32 @@ pub extern "C" fn rust_crc32(mut crc: u32, buf: *const u8, size: usize) -> u32 {
     crc ^ 0xFFFFFFFF
 }
 
+/// Checks if `test_str` starts with `prefix`.
+#[no_mangle]
+pub extern "C" fn rust_begins_with(test_str: *const c_char, prefix: *const c_char) -> bool {
+    if test_str.is_null() || prefix.is_null() {
+        return false;
+    }
+
+    let s = unsafe { CStr::from_ptr(test_str).to_bytes() };
+    let p = unsafe { CStr::from_ptr(prefix).to_bytes() };
+
+    s.starts_with(p)
+}
+
+/// Checks if `test_str` ends with `suffix`.
+#[no_mangle]
+pub extern "C" fn rust_ends_with(test_str: *const c_char, suffix: *const c_char) -> bool {
+    if test_str.is_null() || suffix.is_null() {
+        return false;
+    }
+
+    let s = unsafe { CStr::from_ptr(test_str).to_bytes() };
+    let suf = unsafe { CStr::from_ptr(suffix).to_bytes() };
+
+    s.ends_with(suf)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -421,20 +447,36 @@ mod tests {
 
     #[test]
     fn test_rust_crc32() {
-        // Standard test vector: "123456789" -> 0xCBF43926
         let input = b"123456789";
         let crc = rust_crc32(0, input.as_ptr(), input.len());
         assert_eq!(crc, 0xCBF43926);
 
-        // Empty buffer returns initial crc
         let empty_crc = rust_crc32(12345, std::ptr::null(), 0);
         assert_eq!(empty_crc, 12345);
 
-        // Incremental computation
         let part1 = b"12345";
         let part2 = b"6789";
         let mut inc_crc = rust_crc32(0, part1.as_ptr(), part1.len());
         inc_crc = rust_crc32(inc_crc, part2.as_ptr(), part2.len());
         assert_eq!(inc_crc, 0xCBF43926);
+    }
+
+    #[test]
+    fn test_rust_begins_ends_with() {
+        let text = CString::new("StepManiaX").unwrap();
+        let prefix = CString::new("Step").unwrap();
+        let non_prefix = CString::new("Mania").unwrap();
+        let suffix = CString::new("iaX").unwrap();
+        let non_suffix = CString::new("Step").unwrap();
+
+        assert!(rust_begins_with(text.as_ptr(), prefix.as_ptr()));
+        assert!(!rust_begins_with(text.as_ptr(), non_prefix.as_ptr()));
+
+        assert!(rust_ends_with(text.as_ptr(), suffix.as_ptr()));
+        assert!(!rust_ends_with(text.as_ptr(), non_suffix.as_ptr()));
+
+        // Null handling
+        assert!(!rust_begins_with(std::ptr::null(), prefix.as_ptr()));
+        assert!(!rust_ends_with(text.as_ptr(), std::ptr::null()));
     }
 }
