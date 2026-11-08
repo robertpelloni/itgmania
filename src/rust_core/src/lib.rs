@@ -588,6 +588,59 @@ pub extern "C" fn rust_make_lower_ascii(data: *mut c_char, len: usize) {
     }
 }
 
+/// Extracts the last named path component matching StepMania's Basename semantics:
+/// "a/b/c" -> "c", "a/b/c/" -> "c", "a\b\c" -> "c", "/foo" -> "foo", "/" -> ""
+/// Returns the length of the string written, or -1 if buffer is too small or null.
+#[no_mangle]
+pub extern "C" fn rust_basename(
+    path: *const c_char,
+    path_len: usize,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if path.is_null() || path_len == 0 {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
+
+    // Find last character that is neither '/' nor '\\'
+    let mut end = (path_len as isize) - 1;
+    while end >= 0 && (slice[end as usize] == b'/' || slice[end as usize] == b'\\') {
+        end -= 1;
+    }
+
+    if end < 0 {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let end_idx = end as usize;
+    let mut start = end;
+    while start >= 0 && slice[start as usize] != b'/' && slice[start as usize] != b'\\' {
+        start -= 1;
+    }
+
+    let start_idx = (start + 1) as usize;
+    let base = &slice[start_idx..=end_idx];
+
+    if base.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(base.as_ptr(), out_buf as *mut u8, base.len());
+        *out_buf.add(base.len()) = 0;
+    }
+
+    base.len() as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -905,8 +958,53 @@ mod tests {
         rust_make_lower_ascii(text.as_mut_ptr() as *mut c_char, 16);
         assert_eq!(&text[..16], b"hello world 123!");
 
-        // Null pointer handling
         rust_make_upper_ascii(std::ptr::null_mut(), 10);
         rust_make_lower_ascii(std::ptr::null_mut(), 10);
+    }
+
+    #[test]
+    fn test_rust_basename() {
+        let mut buf = [0 as c_char; 32];
+
+        // "a/b/c" -> "c"
+        let path1 = CString::new("a/b/c").unwrap();
+        let len1 = rust_basename(path1.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len1, 1);
+        let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out1, "c");
+
+        // "a/b/c/" -> "c"
+        let path2 = CString::new("a/b/c/").unwrap();
+        let len2 = rust_basename(path2.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len2, 1);
+        let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out2, "c");
+
+        // "a\\b\\c" -> "c"
+        let path3 = CString::new("a\\b\\c").unwrap();
+        let len3 = rust_basename(path3.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len3, 1);
+        let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out3, "c");
+
+        // "/foo" -> "foo"
+        let path4 = CString::new("/foo").unwrap();
+        let len4 = rust_basename(path4.as_ptr(), 4, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len4, 3);
+        let out4 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out4, "foo");
+
+        // "/" -> ""
+        let path5 = CString::new("/").unwrap();
+        let len5 = rust_basename(path5.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len5, 0);
+        let out5 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out5, "");
+
+        // Empty string
+        let len6 = rust_basename(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len6, 0);
+        let out6 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out6, "");
     }
 }

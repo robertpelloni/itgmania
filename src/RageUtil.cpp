@@ -1664,19 +1664,12 @@ std::string WcharDisplayText(wchar_t c) {
  * a/b/c/ -> c
  */
 std::string Basename(const std::string& sDir) {
-  size_t iEnd = sDir.find_last_not_of("/\\");
-  if (iEnd == sDir.npos) {
-    return std::string();
+  std::vector<char> buf(sDir.size() + 1);
+  int len = rust_basename(sDir.data(), sDir.size(), buf.data(), buf.size());
+  if (len > 0) {
+    return std::string(buf.data(), len);
   }
-
-  size_t iStart = sDir.find_last_of("/\\", iEnd);
-  if (iStart == sDir.npos) {
-    iStart = 0;
-  } else {
-    ++iStart;
-  }
-
-  return sDir.substr(iStart, iEnd - iStart + 1);
+  return std::string();
 }
 
 /* Return all but the last named component of dir:
