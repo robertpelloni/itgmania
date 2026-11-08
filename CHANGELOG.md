@@ -13,3 +13,4 @@
 - Implemented `rust_trim_bounds` in Rust core (`src/rust_core`) with unit tests and wired into `TrimLeft`, `TrimRight`, and `Trim` in `src/RageUtil.cpp`.
 - Implemented `rust_binary_to_hex` in Rust core (`src/rust_core`) with unit tests and wired into `BinaryToHex` in `src/RageUtil.cpp`.
 - Implemented `rust_is_hex_val` and `rust_hex_to_binary` in Rust core (`src/rust_core`) with unit tests and wired into `IsHexVal` and `HexToBinary` in `src/RageUtil.cpp`.
+- Implemented `rust_get_extension` in Rust core (`src/rust_core`) with unit tests and wired into `GetExtension` in `src/RageUtil.cpp`.

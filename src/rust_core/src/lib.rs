@@ -445,6 +445,54 @@ pub extern "C" fn rust_hex_to_binary(
     (len / 2) as i32
 }
 
+/// Extracts file extension from `path` (of length `path_len`) into `out_buf`.
+/// Returns length of extension string written, or -1 if buffer is too small or null.
+#[no_mangle]
+pub extern "C" fn rust_get_extension(
+    path: *const c_char,
+    path_len: usize,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if path.is_null() || path_len == 0 {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
+
+    // Find last '.' in path
+    let dot_pos = match slice.iter().rposition(|&b| b == b'.') {
+        Some(pos) => pos,
+        None => {
+            unsafe { *out_buf = 0; }
+            return 0;
+        }
+    };
+
+    // If there is a '/' after the '.', it was a directory with a dot: e.g. "path/dir.ext/fn"
+    if slice[dot_pos..].iter().any(|&b| b == b'/') {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let ext = &slice[dot_pos + 1..];
+    if ext.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(ext.as_ptr(), out_buf as *mut u8, ext.len());
+        *out_buf.add(ext.len()) = 0;
+    }
+
+    ext.len() as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -679,8 +727,42 @@ mod tests {
         assert_eq!(count, 3);
         assert_eq!(out, [0x12, 0xAB, 0xCF]);
 
-        // Odd length fails
         let odd_hex = CString::new("12a").unwrap();
         assert_eq!(rust_hex_to_binary(odd_hex.as_ptr(), 3, out.as_mut_ptr(), out.len()), -1);
+    }
+
+    #[test]
+    fn test_rust_get_extension() {
+        let mut buf = [0 as c_char; 32];
+
+        // Normal file
+        let path1 = CString::new("song.mp3").unwrap();
+        let len1 = rust_get_extension(path1.as_ptr(), 8, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len1, 3);
+        let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out1, "mp3");
+
+        // Multiple dots
+        let path2 = CString::new("archive.tar.gz").unwrap();
+        let len2 = rust_get_extension(path2.as_ptr(), 14, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len2, 2);
+        let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out2, "gz");
+
+        // Directory with dot, file without dot
+        let path3 = CString::new("path/dir.ext/fn").unwrap();
+        let len3 = rust_get_extension(path3.as_ptr(), 15, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len3, 0);
+        let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out3, "");
+
+        // No dot
+        let path4 = CString::new("README").unwrap();
+        let len4 = rust_get_extension(path4.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len4, 0);
+
+        // Null pointer
+        let len_null = rust_get_extension(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_null, 0);
     }
 }

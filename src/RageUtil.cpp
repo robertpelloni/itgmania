@@ -680,17 +680,15 @@ std::string SetExtension(const std::string& sPath, const std::string& sExt) {
 }
 
 std::string GetExtension(const std::string& sPath) {
-  size_t pos = sPath.rfind('.');
-  if (pos == sPath.npos) {
+  if (sPath.empty()) {
     return std::string();
   }
-
-  size_t slash = sPath.find('/', pos);
-  if (slash != sPath.npos) {
-    return std::string(); /* rare: path/dir.ext/fn */
+  char buf[256];
+  int len = rust_get_extension(sPath.data(), sPath.size(), buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
   }
-
-  return sPath.substr(pos + 1, sPath.size() - pos + 1);
+  return std::string();
 }
 
 std::string GetFileNameWithoutExtension(const std::string& sPath) {

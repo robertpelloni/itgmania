@@ -73,6 +73,8 @@ int rust_binary_to_hex(
 bool rust_is_hex_val(const char* str_ptr, size_t len);
 int rust_hex_to_binary(
     const char* hex_str, size_t len, uint8_t* out_buf, size_t out_buf_len);
+int rust_get_extension(
+    const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }
