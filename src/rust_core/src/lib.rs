@@ -465,7 +465,6 @@ pub extern "C" fn rust_get_extension(
 
     let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
 
-    // Find last '.' in path
     let dot_pos = match slice.iter().rposition(|&b| b == b'.') {
         Some(pos) => pos,
         None => {
@@ -474,7 +473,6 @@ pub extern "C" fn rust_get_extension(
         }
     };
 
-    // If there is a '/' after the '.', it was a directory with a dot: e.g. "path/dir.ext/fn"
     if slice[dot_pos..].iter().any(|&b| b == b'/') {
         unsafe { *out_buf = 0; }
         return 0;
@@ -491,6 +489,73 @@ pub extern "C" fn rust_get_extension(
     }
 
     ext.len() as i32
+}
+
+/// Extracts directory component from `path` matching StepMania's Dirname semantics:
+/// - "/" -> "/"
+/// - "a/b/c" -> "a/b/"
+/// - "c/" -> "./"
+/// - If no directory prefix, returns "./"
+///
+/// Returns length of directory string written, or -1 if buffer is too small or null.
+#[no_mangle]
+pub extern "C" fn rust_dirname(
+    path: *const c_char,
+    path_len: usize,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if path.is_null() || path_len == 0 {
+        if out_buf_len < 3 {
+            return -1;
+        }
+        unsafe {
+            std::ptr::copy_nonoverlapping(b"./\0".as_ptr(), out_buf as *mut u8, 3);
+        }
+        return 2;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
+
+    if path_len == 1 && slice[0] == b'/' {
+        if out_buf_len < 2 {
+            return -1;
+        }
+        unsafe {
+            std::ptr::copy_nonoverlapping(b"/\0".as_ptr(), out_buf as *mut u8, 2);
+        }
+        return 1;
+    }
+
+    let mut pos = (path_len as isize) - 1;
+    while pos >= 0 && slice[pos as usize] == b'/' {
+        pos -= 1;
+    }
+
+    while pos >= 0 && slice[pos as usize] != b'/' {
+        pos -= 1;
+    }
+
+    let res = if pos < 0 {
+        b"./" as &[u8]
+    } else {
+        &slice[0..=(pos as usize)]
+    };
+
+    if res.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(res.as_ptr(), out_buf as *mut u8, res.len());
+        *out_buf.add(res.len()) = 0;
+    }
+
+    res.len() as i32
 }
 
 #[cfg(test)]
@@ -735,34 +800,75 @@ mod tests {
     fn test_rust_get_extension() {
         let mut buf = [0 as c_char; 32];
 
-        // Normal file
         let path1 = CString::new("song.mp3").unwrap();
         let len1 = rust_get_extension(path1.as_ptr(), 8, buf.as_mut_ptr(), buf.len());
         assert_eq!(len1, 3);
         let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out1, "mp3");
 
-        // Multiple dots
         let path2 = CString::new("archive.tar.gz").unwrap();
         let len2 = rust_get_extension(path2.as_ptr(), 14, buf.as_mut_ptr(), buf.len());
         assert_eq!(len2, 2);
         let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out2, "gz");
 
-        // Directory with dot, file without dot
         let path3 = CString::new("path/dir.ext/fn").unwrap();
         let len3 = rust_get_extension(path3.as_ptr(), 15, buf.as_mut_ptr(), buf.len());
         assert_eq!(len3, 0);
         let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out3, "");
 
-        // No dot
         let path4 = CString::new("README").unwrap();
         let len4 = rust_get_extension(path4.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
         assert_eq!(len4, 0);
 
-        // Null pointer
         let len_null = rust_get_extension(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_null, 0);
+    }
+
+    #[test]
+    fn test_rust_dirname() {
+        let mut buf = [0 as c_char; 32];
+
+        // "a/b/c" -> "a/b/"
+        let path1 = CString::new("a/b/c").unwrap();
+        let len1 = rust_dirname(path1.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len1, 4);
+        let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out1, "a/b/");
+
+        // "a/b/c/" -> "a/b/"
+        let path2 = CString::new("a/b/c/").unwrap();
+        let len2 = rust_dirname(path2.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len2, 4);
+        let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out2, "a/b/");
+
+        // "c/" -> "./"
+        let path3 = CString::new("c/").unwrap();
+        let len3 = rust_dirname(path3.as_ptr(), 2, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len3, 2);
+        let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out3, "./");
+
+        // "/foo" -> "/"
+        let path4 = CString::new("/foo").unwrap();
+        let len4 = rust_dirname(path4.as_ptr(), 4, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len4, 1);
+        let out4 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out4, "/");
+
+        // "/" -> "/"
+        let path5 = CString::new("/").unwrap();
+        let len5 = rust_dirname(path5.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len5, 1);
+        let out5 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out5, "/");
+
+        // "" -> "./"
+        let len6 = rust_dirname(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len6, 2);
+        let out6 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out6, "./");
     }
 }

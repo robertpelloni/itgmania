@@ -1694,27 +1694,12 @@ std::string Basename(const std::string& sDir) {
  * / -> /
  */
 std::string Dirname(const std::string& dir) {
-  // Special case: "/" -> "/".
-  if (dir.size() == 1 && dir[0] == '/') {
-    return "/";
+  std::vector<char> buf(dir.size() + 4);
+  int len = rust_dirname(dir.data(), dir.size(), buf.data(), buf.size());
+  if (len > 0) {
+    return std::string(buf.data(), len);
   }
-
-  int pos = dir.size() - 1;
-  // Skip trailing slashes.
-  while (pos >= 0 && dir[pos] == '/') {
-    --pos;
-  }
-
-  // Skip the last component.
-  while (pos >= 0 && dir[pos] != '/') {
-    --pos;
-  }
-
-  if (pos < 0) {
-    return "./";
-  }
-
-  return dir.substr(0, pos + 1);
+  return "./";
 }
 
 std::string Capitalize(const std::string& s) {

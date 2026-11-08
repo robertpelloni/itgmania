@@ -5,5 +5,5 @@ Session goals:
 
 Current status:
 - `bobcoin` subproject updated to v8.115.0 with full test passes and unified command center.
-- `itgmania` subproject has Rust core integration in `src/rust_core` with `rust_sm_crash`, `rust_format_log_location`, `rust_timer_difference`, `rust_timer_sum`, `rust_clamp_*`, `rust_url_encode`, `rust_strip_crnl`, `rust_crc32`, `rust_begins_with`, `rust_ends_with`, `rust_trim_bounds`, `rust_binary_to_hex`, `rust_is_hex_val`, `rust_hex_to_binary`, and `rust_get_extension` in `src/RageLog.cpp`, `src/RageTimer.cpp`, `src/RageUtil.cpp`, and `src/global.h`.
+- `itgmania` subproject has Rust core integration in `src/rust_core` with `rust_sm_crash`, `rust_format_log_location`, `rust_timer_difference`, `rust_timer_sum`, `rust_clamp_*`, `rust_url_encode`, `rust_strip_crnl`, `rust_crc32`, `rust_begins_with`, `rust_ends_with`, `rust_trim_bounds`, `rust_binary_to_hex`, `rust_is_hex_val`, `rust_hex_to_binary`, `rust_get_extension`, and `rust_dirname` in `src/RageLog.cpp`, `src/RageTimer.cpp`, `src/RageUtil.cpp`, and `src/global.h`.
 - External CMake scripts (`extern/CMakeLists.txt`, `extern/CMakeProject-*.cmake`) and CI workflow `fetch-extern-deps.sh` configured.

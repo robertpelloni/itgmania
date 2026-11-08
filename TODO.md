@@ -12,4 +12,5 @@
 - [x] Port binary to hex conversion (`rust_binary_to_hex`) to Rust core and wire into `BinaryToHex` in `src/RageUtil.cpp`.
 - [x] Port hex validation and decoding (`rust_is_hex_val`, `rust_hex_to_binary`) to Rust core and wire into `IsHexVal` and `HexToBinary` in `src/RageUtil.cpp`.
 - [x] Port path extension extraction (`rust_get_extension`) to Rust core and wire into `GetExtension` in `src/RageUtil.cpp`.
+- [x] Port directory path extraction (`rust_dirname`) to Rust core and wire into `Dirname` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.
