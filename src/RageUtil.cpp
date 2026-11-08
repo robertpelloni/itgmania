@@ -68,33 +68,10 @@ float fmodfp(float x, float y) {
 }
 
 /* https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2 */
-int power_of_two(int v) {
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-
-  /* Always be sure to return a value of at least 1. In the event of any edge
-   * cases, such as a zero or negative input, the returned value will be `1`. */
-  v += (v == 0);
-  return v;
-}
+int power_of_two(int v) { return rust_power_of_two(v); }
 
 bool IsAnInt(const std::string& s) {
-  if (!s.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < s.size(); ++i) {
-    if (s[i] < '0' || s[i] > '9') {
-      return false;
-    }
-  }
-
-  return true;
+  return rust_is_an_int(s.data(), s.size());
 }
 
 bool IsHexVal(const std::string& s) {

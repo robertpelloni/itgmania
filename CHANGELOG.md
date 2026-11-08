@@ -18,3 +18,4 @@
 - Implemented `rust_make_upper_ascii` and `rust_make_lower_ascii` in Rust core (`src/rust_core`) with unit tests and wired into `MakeUpper` and `MakeLower` in `src/RageUtil.cpp`.
 - Implemented `rust_basename` in Rust core (`src/rust_core`) with unit tests and wired into `Basename` in `src/RageUtil.cpp`.
 - Implemented `rust_splitpath` in Rust core (`src/rust_core`) with unit tests and wired into `splitpath` in `src/RageUtil.cpp`.
+- Implemented `rust_is_an_int` and `rust_power_of_two` in Rust core (`src/rust_core`) with unit tests and wired into `IsAnInt` and `power_of_two` in `src/RageUtil.cpp`.

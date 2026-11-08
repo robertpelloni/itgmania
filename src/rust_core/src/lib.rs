@@ -707,6 +707,35 @@ pub extern "C" fn rust_splitpath(
     0
 }
 
+/// Checks whether an ASCII string represents an unsigned integer (all characters '0'..'9').
+/// Returns true if non-empty and all characters are ASCII digits, false otherwise.
+#[no_mangle]
+pub extern "C" fn rust_is_an_int(s: *const c_char, len: usize) -> bool {
+    if s.is_null() || len == 0 {
+        return false;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(s as *const u8, len) };
+    slice.iter().all(|&b| b.is_ascii_digit())
+}
+
+/// Rounds an integer up to the next power of two.
+/// If v is 0 or negative, returns 1.
+/// Replicates the bitwise rounding technique:
+/// https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2
+#[no_mangle]
+pub extern "C" fn rust_power_of_two(mut v: i32) -> i32 {
+    v = v.wrapping_sub(1);
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v = v.wrapping_add(1);
+
+    v + if v == 0 { 1 } else { 0 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1122,5 +1151,37 @@ mod tests {
         assert_eq!(unsafe { CStr::from_ptr(dir_buf.as_ptr()).to_str().unwrap() }, "");
         assert_eq!(unsafe { CStr::from_ptr(file_buf.as_ptr()).to_str().unwrap() }, "file");
         assert_eq!(unsafe { CStr::from_ptr(ext_buf.as_ptr()).to_str().unwrap() }, ".ext");
+    }
+
+    #[test]
+    fn test_rust_is_an_int() {
+        assert!(!rust_is_an_int(std::ptr::null(), 0));
+        assert!(!rust_is_an_int(std::ptr::null(), 5));
+
+        let empty = CString::new("").unwrap();
+        assert!(!rust_is_an_int(empty.as_ptr(), 0));
+
+        let valid = CString::new("1234567890").unwrap();
+        assert!(rust_is_an_int(valid.as_ptr(), 10));
+
+        let invalid = CString::new("123a56").unwrap();
+        assert!(!rust_is_an_int(invalid.as_ptr(), 6));
+
+        let negative = CString::new("-50").unwrap();
+        assert!(!rust_is_an_int(negative.as_ptr(), 3));
+    }
+
+    #[test]
+    fn test_rust_power_of_two() {
+        assert_eq!(rust_power_of_two(0), 1);
+        assert_eq!(rust_power_of_two(-10), 1);
+        assert_eq!(rust_power_of_two(1), 1);
+        assert_eq!(rust_power_of_two(2), 2);
+        assert_eq!(rust_power_of_two(3), 4);
+        assert_eq!(rust_power_of_two(4), 4);
+        assert_eq!(rust_power_of_two(5), 8);
+        assert_eq!(rust_power_of_two(100), 128);
+        assert_eq!(rust_power_of_two(1024), 1024);
+        assert_eq!(rust_power_of_two(1025), 2048);
     }
 }

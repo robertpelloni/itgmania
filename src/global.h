@@ -84,6 +84,8 @@ void rust_make_lower_ascii(char* data, size_t len);
 int rust_splitpath(
     const char* path, size_t path_len, char* dir_buf, size_t dir_buf_len,
     char* file_buf, size_t file_buf_len, char* ext_buf, size_t ext_buf_len);
+bool rust_is_an_int(const char* s, size_t len);
+int rust_power_of_two(int v);
 
 #ifdef __cplusplus
 }
