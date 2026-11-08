@@ -300,6 +300,48 @@ pub extern "C" fn rust_ends_with(test_str: *const c_char, suffix: *const c_char)
     s.ends_with(suf)
 }
 
+/// Finds the trimmed start and end indices of `data` by checking for characters present in `trim_chars`.
+/// `out_start` receives the index of the first non-trim character (or `len` if all trimmed).
+/// `out_end` receives the index immediately following the last non-trim character (or `0` if all trimmed).
+#[no_mangle]
+pub extern "C" fn rust_trim_bounds(
+    data: *const c_char,
+    len: usize,
+    trim_chars: *const c_char,
+    out_start: *mut usize,
+    out_end: *mut usize,
+) {
+    if out_start.is_null() || out_end.is_null() {
+        return;
+    }
+
+    if data.is_null() || len == 0 || trim_chars.is_null() {
+        unsafe {
+            *out_start = 0;
+            *out_end = len;
+        }
+        return;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
+    let trim_set = unsafe { CStr::from_ptr(trim_chars).to_bytes() };
+
+    let mut start = 0;
+    while start < len && trim_set.contains(&slice[start]) {
+        start += 1;
+    }
+
+    let mut end = len;
+    while end > 0 && trim_set.contains(&slice[end - 1]) {
+        end -= 1;
+    }
+
+    unsafe {
+        *out_start = start;
+        *out_end = end;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -475,8 +517,31 @@ mod tests {
         assert!(rust_ends_with(text.as_ptr(), suffix.as_ptr()));
         assert!(!rust_ends_with(text.as_ptr(), non_suffix.as_ptr()));
 
-        // Null handling
         assert!(!rust_begins_with(std::ptr::null(), prefix.as_ptr()));
         assert!(!rust_ends_with(text.as_ptr(), std::ptr::null()));
+    }
+
+    #[test]
+    fn test_rust_trim_bounds() {
+        let text = CString::new("  \t hello world \n ").unwrap();
+        let trim = CString::new(" \t\r\n").unwrap();
+        let mut start = 0usize;
+        let mut end = 0usize;
+
+        rust_trim_bounds(text.as_ptr(), 18, trim.as_ptr(), &mut start, &mut end);
+        assert_eq!(start, 4); // points to 'h'
+        assert_eq!(end, 15);  // points after 'd'
+
+        // Fully trimmed string
+        let whitespace = CString::new("   \t  ").unwrap();
+        rust_trim_bounds(whitespace.as_ptr(), 6, trim.as_ptr(), &mut start, &mut end);
+        assert_eq!(start, 6);
+        assert_eq!(end, 0);
+
+        // Untrimmed string
+        let clean = CString::new("hello").unwrap();
+        rust_trim_bounds(clean.as_ptr(), 5, trim.as_ptr(), &mut start, &mut end);
+        assert_eq!(start, 0);
+        assert_eq!(end, 5);
     }
 }

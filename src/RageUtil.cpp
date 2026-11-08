@@ -959,34 +959,34 @@ void FilterHighErrorPoints(
 }
 
 void TrimLeft(std::string& sStr, const char* s) {
-  int n = 0;
-  while (n < int(sStr.size()) && strchr(s, sStr[n])) {
-    n++;
+  if (sStr.empty()) {
+    return;
   }
-
-  sStr.erase(sStr.begin(), sStr.begin() + n);
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  sStr.erase(0, start);
 }
 
 void TrimRight(std::string& sStr, const char* s) {
-  int n = sStr.size();
-  while (n > 0 && strchr(s, sStr[n - 1])) {
-    n--;
+  if (sStr.empty()) {
+    return;
   }
-
-  /* Delete from n to the end. If n == sStr.size(), nothing is deleted;
-   * if n == 0, the whole string is erased. */
-  sStr.erase(sStr.begin() + n, sStr.end());
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  sStr.erase(end);
 }
 
 void Trim(std::string& sStr, const char* s) {
-  std::string::size_type b = 0, e = sStr.size();
-  while (b < e && strchr(s, sStr[b])) {
-    ++b;
+  if (sStr.empty()) {
+    return;
   }
-  while (b < e && strchr(s, sStr[e - 1])) {
-    --e;
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  if (start >= end) {
+    sStr.clear();
+  } else {
+    sStr.assign(sStr.substr(start, end - start));
   }
-  sStr.assign(sStr.substr(b, e - b));
 }
 
 void StripCrnl(std::string& s) {

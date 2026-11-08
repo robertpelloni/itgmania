@@ -65,6 +65,9 @@ size_t rust_strip_crnl(char* data, size_t len);
 uint32_t rust_crc32(uint32_t initial_crc, const void* buf, size_t size);
 bool rust_begins_with(const char* test_str, const char* prefix);
 bool rust_ends_with(const char* test_str, const char* suffix);
+void rust_trim_bounds(
+    const char* data, size_t len, const char* trim_chars, size_t* out_start,
+    size_t* out_end);
 
 #ifdef __cplusplus
 }

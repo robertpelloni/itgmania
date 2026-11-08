@@ -10,3 +10,4 @@
 - Implemented `rust_strip_crnl` in Rust core (`src/rust_core`) with unit tests and wired into `StripCrnl` in `src/RageUtil.cpp`.
 - Implemented `rust_crc32` in Rust core (`src/rust_core`) with precomputed lookup table and unit tests, and wired into `CRC32` in `src/RageUtil.cpp`.
 - Implemented `rust_begins_with` and `rust_ends_with` in Rust core (`src/rust_core`) with unit tests and wired into `BeginsWith` and `EndsWith` in `src/RageUtil.cpp`.
+- Implemented `rust_trim_bounds` in Rust core (`src/rust_core`) with unit tests and wired into `TrimLeft`, `TrimRight`, and `Trim` in `src/RageUtil.cpp`.
