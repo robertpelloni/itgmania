@@ -1354,14 +1354,11 @@ static int UnicodeDoUpper(
  * characters of the same UTF-8 length, so we never have to move the whole
  * string. This is optimized for strings that have no non-ASCII characters. */
 void MakeUpper(char* p, size_t iLen) {
+  rust_make_upper_ascii(p, iLen);
   char* pStart = p;
   char* pEnd = p + iLen;
   while (p < pEnd) {
-    // Fast path:
     if (likely(!(*p & 0x80))) {
-      if (unlikely(*p >= 'a' && *p <= 'z')) {
-        *p += 'A' - 'a';
-      }
       ++p;
       continue;
     }
@@ -1372,14 +1369,11 @@ void MakeUpper(char* p, size_t iLen) {
 }
 
 void MakeLower(char* p, size_t iLen) {
+  rust_make_lower_ascii(p, iLen);
   char* pStart = p;
   char* pEnd = p + iLen;
   while (p < pEnd) {
-    // Fast path:
     if (likely(!(*p & 0x80))) {
-      if (unlikely(*p >= 'A' && *p <= 'Z')) {
-        *p -= 'A' - 'a';
-      }
       ++p;
       continue;
     }

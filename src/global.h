@@ -77,6 +77,8 @@ int rust_get_extension(
     const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
 int rust_dirname(
     const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
+void rust_make_upper_ascii(char* data, size_t len);
+void rust_make_lower_ascii(char* data, size_t len);
 
 #ifdef __cplusplus
 }

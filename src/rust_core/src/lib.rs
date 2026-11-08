@@ -558,6 +558,36 @@ pub extern "C" fn rust_dirname(
     res.len() as i32
 }
 
+/// Converts ASCII characters in-place to uppercase.
+#[no_mangle]
+pub extern "C" fn rust_make_upper_ascii(data: *mut c_char, len: usize) {
+    if data.is_null() || len == 0 {
+        return;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts_mut(data as *mut u8, len) };
+    for b in slice {
+        if (b'a'..=b'z').contains(b) {
+            *b -= 32;
+        }
+    }
+}
+
+/// Converts ASCII characters in-place to lowercase.
+#[no_mangle]
+pub extern "C" fn rust_make_lower_ascii(data: *mut c_char, len: usize) {
+    if data.is_null() || len == 0 {
+        return;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts_mut(data as *mut u8, len) };
+    for b in slice {
+        if (b'A'..=b'Z').contains(b) {
+            *b += 32;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -830,45 +860,53 @@ mod tests {
     fn test_rust_dirname() {
         let mut buf = [0 as c_char; 32];
 
-        // "a/b/c" -> "a/b/"
         let path1 = CString::new("a/b/c").unwrap();
         let len1 = rust_dirname(path1.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
         assert_eq!(len1, 4);
         let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out1, "a/b/");
 
-        // "a/b/c/" -> "a/b/"
         let path2 = CString::new("a/b/c/").unwrap();
         let len2 = rust_dirname(path2.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
         assert_eq!(len2, 4);
         let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out2, "a/b/");
 
-        // "c/" -> "./"
         let path3 = CString::new("c/").unwrap();
         let len3 = rust_dirname(path3.as_ptr(), 2, buf.as_mut_ptr(), buf.len());
         assert_eq!(len3, 2);
         let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out3, "./");
 
-        // "/foo" -> "/"
         let path4 = CString::new("/foo").unwrap();
         let len4 = rust_dirname(path4.as_ptr(), 4, buf.as_mut_ptr(), buf.len());
         assert_eq!(len4, 1);
         let out4 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out4, "/");
 
-        // "/" -> "/"
         let path5 = CString::new("/").unwrap();
         let len5 = rust_dirname(path5.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
         assert_eq!(len5, 1);
         let out5 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out5, "/");
 
-        // "" -> "./"
         let len6 = rust_dirname(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
         assert_eq!(len6, 2);
         let out6 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out6, "./");
+    }
+
+    #[test]
+    fn test_rust_make_upper_lower_ascii() {
+        let mut text = Vec::from(*b"Hello World 123!\0");
+        rust_make_upper_ascii(text.as_mut_ptr() as *mut c_char, 16);
+        assert_eq!(&text[..16], b"HELLO WORLD 123!");
+
+        rust_make_lower_ascii(text.as_mut_ptr() as *mut c_char, 16);
+        assert_eq!(&text[..16], b"hello world 123!");
+
+        // Null pointer handling
+        rust_make_upper_ascii(std::ptr::null_mut(), 10);
+        rust_make_lower_ascii(std::ptr::null_mut(), 10);
     }
 }

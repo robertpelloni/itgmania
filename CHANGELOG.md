@@ -15,3 +15,4 @@
 - Implemented `rust_is_hex_val` and `rust_hex_to_binary` in Rust core (`src/rust_core`) with unit tests and wired into `IsHexVal` and `HexToBinary` in `src/RageUtil.cpp`.
 - Implemented `rust_get_extension` in Rust core (`src/rust_core`) with unit tests and wired into `GetExtension` in `src/RageUtil.cpp`.
 - Implemented `rust_dirname` in Rust core (`src/rust_core`) with unit tests and wired into `Dirname` in `src/RageUtil.cpp`.
+- Implemented `rust_make_upper_ascii` and `rust_make_lower_ascii` in Rust core (`src/rust_core`) with unit tests and wired into `MakeUpper` and `MakeLower` in `src/RageUtil.cpp`.
