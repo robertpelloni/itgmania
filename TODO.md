@@ -20,4 +20,5 @@
 - [x] Port floating-point approach (`rust_fapproach`) and positive modulus (`rust_fmodfp`) to Rust core and wire into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
 - [x] Port number commification (`rust_commify`) to Rust core and wire into `Commify` in `src/RageUtil.cpp`.
 - [x] Port percentage formatting (`rust_pretty_percent`) to Rust core and wire into `PrettyPercent` in `src/RageUtil.cpp`.
+- [x] Port time string formatters (`rust_seconds_to_hhmmss`, `rust_seconds_to_mmss`, `rust_seconds_to_mss`) to Rust core and wire into `SecondsToHHMMSS`, `SecondsToMMSS`, and `SecondsToMSS` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.

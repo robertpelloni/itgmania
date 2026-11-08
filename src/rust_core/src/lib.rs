@@ -88,6 +88,90 @@ pub extern "C" fn rust_format_log_location(
     bytes.len() as i32
 }
 
+/// Formats seconds as HH:MM:SS (`"%02d:%02d:%02d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_hhmmss(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let total_mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let formatted = format!("{:02}:{:02}:{:02}", total_mins / 60, total_mins % 60, secs_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
+/// Formats seconds as MM:SS (`"%02d:%02d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_mmss(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let formatted = format!("{:02}:{:02}", mins, secs_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
+/// Formats seconds as M:SS (`"%01d:%02d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_mss(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let formatted = format!("{:01}:{:02}", mins, secs_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
 /// Calculates the time difference between two timestamps (lhs - rhs) in seconds as a double,
 /// preserving sub-microsecond fractional precision.
 #[no_mangle]
@@ -1414,5 +1498,25 @@ mod tests {
         let mut small_buf = [0 as c_char; 4];
         let len_overflow = rust_pretty_percent(1.0, 2.0, small_buf.as_mut_ptr(), small_buf.len());
         assert_eq!(len_overflow, -1);
+    }
+
+    #[test]
+    fn test_rust_seconds_to_time_strings() {
+        let mut buf = [0 as c_char; 32];
+
+        // 3665 seconds = 01:01:05
+        let len_hh = rust_seconds_to_hhmmss(3665.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_hh, 8);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:01:05");
+
+        // 125 seconds = 02:05
+        let len_mm = rust_seconds_to_mmss(125.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_mm, 5);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "02:05");
+
+        // 65 seconds = 1:05
+        let len_mss = rust_seconds_to_mss(65.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_mss, 4);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "1:05");
     }
 }

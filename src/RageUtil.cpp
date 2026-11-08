@@ -111,11 +111,15 @@ float HHMMSSToSeconds(const std::string& sHHMMSS) {
 }
 
 std::string SecondsToHHMMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_hhmmss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02d:%02d:%02d", iMinsDisplay / 60, iMinsDisplay % 60, iSecsDisplay);
-  return sReturn;
 }
 
 std::string SecondsToMMSSMsMs(float fSecs) {
@@ -175,17 +179,25 @@ std::string MicrosecondsToMMSSMsMsMs(uint64_t usecs) {
 }
 
 std::string SecondsToMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf("%01d:%02d", iMinsDisplay, iSecsDisplay);
-  return sReturn;
+  return ssprintf("%01d:%02d", iMinsDisplay, iSecsDisplay);
 }
 
 std::string SecondsToMMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mmss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf("%02d:%02d", iMinsDisplay, iSecsDisplay);
-  return sReturn;
+  return ssprintf("%02d:%02d", iMinsDisplay, iSecsDisplay);
 }
 
 std::string PrettyPercent(float fNumerator, float fDenominator) {

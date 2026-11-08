@@ -93,6 +93,9 @@ int rust_commify(
     const char* dot, size_t dot_len, char* out_buf, size_t out_buf_len);
 int rust_pretty_percent(
     float numerator, float denominator, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_hhmmss(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mmss(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mss(float secs, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

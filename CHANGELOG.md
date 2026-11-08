@@ -22,3 +22,4 @@
 - Implemented `rust_fapproach` and `rust_fmodfp` in Rust core (`src/rust_core`) with unit tests and wired into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
 - Implemented `rust_commify` in Rust core (`src/rust_core`) with unit tests and wired into `Commify` in `src/RageUtil.cpp`.
 - Implemented `rust_pretty_percent` in Rust core (`src/rust_core`) with unit tests and wired into `PrettyPercent` in `src/RageUtil.cpp`.
+- Implemented `rust_seconds_to_hhmmss`, `rust_seconds_to_mmss`, and `rust_seconds_to_mss` in Rust core (`src/rust_core`) with unit tests and wired into `SecondsToHHMMSS`, `SecondsToMMSS`, and `SecondsToMSS` in `src/RageUtil.cpp`.
