@@ -19,4 +19,5 @@
 - [x] Port integer string validation (`rust_is_an_int`) and power of two rounding (`rust_power_of_two`) to Rust core and wire into `IsAnInt` and `power_of_two` in `src/RageUtil.cpp`.
 - [x] Port floating-point approach (`rust_fapproach`) and positive modulus (`rust_fmodfp`) to Rust core and wire into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
 - [x] Port number commification (`rust_commify`) to Rust core and wire into `Commify` in `src/RageUtil.cpp`.
+- [x] Port percentage formatting (`rust_pretty_percent`) to Rust core and wire into `PrettyPercent` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.

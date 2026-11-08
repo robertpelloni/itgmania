@@ -189,6 +189,11 @@ std::string SecondsToMMSS(float fSecs) {
 }
 
 std::string PrettyPercent(float fNumerator, float fDenominator) {
+  char buf[32];
+  int len = rust_pretty_percent(fNumerator, fDenominator, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   return ssprintf("%0.2f%%", fNumerator / fDenominator * 100);
 }
 

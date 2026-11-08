@@ -91,6 +91,8 @@ float rust_fmodfp(float x, float y);
 int rust_commify(
     const char* num, size_t num_len, const char* sep, size_t sep_len,
     const char* dot, size_t dot_len, char* out_buf, size_t out_buf_len);
+int rust_pretty_percent(
+    float numerator, float denominator, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

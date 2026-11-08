@@ -21,3 +21,4 @@
 - Implemented `rust_is_an_int` and `rust_power_of_two` in Rust core (`src/rust_core`) with unit tests and wired into `IsAnInt` and `power_of_two` in `src/RageUtil.cpp`.
 - Implemented `rust_fapproach` and `rust_fmodfp` in Rust core (`src/rust_core`) with unit tests and wired into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
 - Implemented `rust_commify` in Rust core (`src/rust_core`) with unit tests and wired into `Commify` in `src/RageUtil.cpp`.
+- Implemented `rust_pretty_percent` in Rust core (`src/rust_core`) with unit tests and wired into `PrettyPercent` in `src/RageUtil.cpp`.

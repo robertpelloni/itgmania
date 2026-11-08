@@ -870,6 +870,40 @@ pub extern "C" fn rust_commify(
     dest as i32
 }
 
+/// Formats a fraction (numerator / denominator * 100) as a percentage string with 2 decimal places: `%0.2f%%`.
+/// If denominator is 0.0 or buffer is too small, handles gracefully.
+#[no_mangle]
+pub extern "C" fn rust_pretty_percent(
+    numerator: f32,
+    denominator: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let pct = if denominator == 0.0 {
+        0.0f32
+    } else {
+        (numerator / denominator) * 100.0f32
+    };
+
+    let formatted = format!("{:.2}%", pct);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1359,5 +1393,26 @@ mod tests {
 
         let len_null = rust_commify(std::ptr::null(), 0, sep.as_ptr(), 1, dot.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_null, 0);
+    }
+
+    #[test]
+    fn test_rust_pretty_percent() {
+        let mut buf = [0 as c_char; 32];
+
+        let len1 = rust_pretty_percent(1.0, 2.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len1, 6);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "50.00%");
+
+        let len2 = rust_pretty_percent(1.0, 3.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len2, 6);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "33.33%");
+
+        let len_zero = rust_pretty_percent(5.0, 0.0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_zero, 5);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "0.00%");
+
+        let mut small_buf = [0 as c_char; 4];
+        let len_overflow = rust_pretty_percent(1.0, 2.0, small_buf.as_mut_ptr(), small_buf.len());
+        assert_eq!(len_overflow, -1);
     }
 }
