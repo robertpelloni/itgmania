@@ -15,4 +15,5 @@
 - [x] Port directory path extraction (`rust_dirname`) to Rust core and wire into `Dirname` in `src/RageUtil.cpp`.
 - [x] Port ASCII uppercase and lowercase transformations (`rust_make_upper_ascii`, `rust_make_lower_ascii`) to Rust core and wire into `MakeUpper` and `MakeLower` in `src/RageUtil.cpp`.
 - [x] Port path basename extraction (`rust_basename`) to Rust core and wire into `Basename` in `src/RageUtil.cpp`.
+- [x] Port path components decomposition (`rust_splitpath`) to Rust core and wire into `splitpath` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.

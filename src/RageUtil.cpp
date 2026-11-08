@@ -635,28 +635,21 @@ void splitpath(
     const std::string& sPath, std::string& sDir, std::string& sFilename,
     std::string& sExt) {
   sDir = sFilename = sExt = "";
+  if (sPath.empty()) {
+    return;
+  }
 
-  std::vector<std::string> asMatches;
+  std::vector<char> dir_buf(sPath.size() + 1);
+  std::vector<char> file_buf(sPath.size() + 1);
+  std::vector<char> ext_buf(sPath.size() + 1);
 
-  /*
-   * One level of escapes for the regex, one for C. Ew.
-   * This is really:
-   * ^(.*[\\/])?(.*)$
-   */
-  static Regex sep("^(.*[\\\\/])?(.*)$");
-  bool bCheck = sep.Compare(sPath, asMatches);
-  ASSERT(bCheck);
-
-  sDir = asMatches[0];
-  const std::string sBase = asMatches[1];
-
-  /* ^(.*)(\.[^\.]+)$ */
-  static Regex SplitExt("^(.*)(\\.[^\\.]+)$");
-  if (SplitExt.Compare(sBase, asMatches)) {
-    sFilename = asMatches[0];
-    sExt = asMatches[1];
-  } else {
-    sFilename = sBase;
+  int res = rust_splitpath(
+      sPath.data(), sPath.size(), dir_buf.data(), dir_buf.size(),
+      file_buf.data(), file_buf.size(), ext_buf.data(), ext_buf.size());
+  if (res == 0) {
+    sDir = dir_buf.data();
+    sFilename = file_buf.data();
+    sExt = ext_buf.data();
   }
 }
 

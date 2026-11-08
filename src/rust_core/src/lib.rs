@@ -609,7 +609,6 @@ pub extern "C" fn rust_basename(
 
     let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
 
-    // Find last character that is neither '/' nor '\\'
     let mut end = (path_len as isize) - 1;
     while end >= 0 && (slice[end as usize] == b'/' || slice[end as usize] == b'\\') {
         end -= 1;
@@ -639,6 +638,73 @@ pub extern "C" fn rust_basename(
     }
 
     base.len() as i32
+}
+
+/// Splits a path into directory, base filename, and extension components.
+/// Implements StepMania `splitpath` semantics:
+/// - Directory: everything up to and including the last '/' or '\' (or empty if none).
+/// - Filename: remainder minus extension.
+/// - Extension: trailing dot followed by non-dot characters (or empty if none).
+#[no_mangle]
+pub extern "C" fn rust_splitpath(
+    path: *const c_char,
+    path_len: usize,
+    dir_buf: *mut c_char,
+    dir_buf_len: usize,
+    file_buf: *mut c_char,
+    file_buf_len: usize,
+    ext_buf: *mut c_char,
+    ext_buf_len: usize,
+) -> i32 {
+    if dir_buf.is_null() || file_buf.is_null() || ext_buf.is_null() {
+        return -1;
+    }
+
+    if path.is_null() || path_len == 0 {
+        unsafe {
+            if dir_buf_len > 0 { *dir_buf = 0; }
+            if file_buf_len > 0 { *file_buf = 0; }
+            if ext_buf_len > 0 { *ext_buf = 0; }
+        }
+        return 0;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(path as *const u8, path_len) };
+
+    // Find last '/' or '\\'
+    let last_sep = slice.iter().rposition(|&b| b == b'/' || b == b'\\');
+    let (dir_slice, base_slice) = match last_sep {
+        Some(idx) => (&slice[..=idx], &slice[idx + 1..]),
+        None => (&slice[..0], slice),
+    };
+
+    // Find extension in base_slice: ^(.*)(\.[^\.]+)$
+    let (file_slice, ext_slice) = match base_slice.iter().rposition(|&b| b == b'.') {
+        Some(dot_idx) if dot_idx > 0 || base_slice.len() > 1 => {
+            (&base_slice[..dot_idx], &base_slice[dot_idx..])
+        }
+        _ => (base_slice, &base_slice[..0]),
+    };
+
+    if dir_slice.len() + 1 > dir_buf_len
+        || file_slice.len() + 1 > file_buf_len
+        || ext_slice.len() + 1 > ext_buf_len
+    {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(dir_slice.as_ptr(), dir_buf as *mut u8, dir_slice.len());
+        *dir_buf.add(dir_slice.len()) = 0;
+
+        std::ptr::copy_nonoverlapping(file_slice.as_ptr(), file_buf as *mut u8, file_slice.len());
+        *file_buf.add(file_slice.len()) = 0;
+
+        std::ptr::copy_nonoverlapping(ext_slice.as_ptr(), ext_buf as *mut u8, ext_slice.len());
+        *ext_buf.add(ext_slice.len()) = 0;
+    }
+
+    0
 }
 
 #[cfg(test)]
@@ -966,45 +1032,95 @@ mod tests {
     fn test_rust_basename() {
         let mut buf = [0 as c_char; 32];
 
-        // "a/b/c" -> "c"
         let path1 = CString::new("a/b/c").unwrap();
         let len1 = rust_basename(path1.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
         assert_eq!(len1, 1);
         let out1 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out1, "c");
 
-        // "a/b/c/" -> "c"
         let path2 = CString::new("a/b/c/").unwrap();
         let len2 = rust_basename(path2.as_ptr(), 6, buf.as_mut_ptr(), buf.len());
         assert_eq!(len2, 1);
         let out2 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out2, "c");
 
-        // "a\\b\\c" -> "c"
         let path3 = CString::new("a\\b\\c").unwrap();
         let len3 = rust_basename(path3.as_ptr(), 5, buf.as_mut_ptr(), buf.len());
         assert_eq!(len3, 1);
         let out3 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out3, "c");
 
-        // "/foo" -> "foo"
         let path4 = CString::new("/foo").unwrap();
         let len4 = rust_basename(path4.as_ptr(), 4, buf.as_mut_ptr(), buf.len());
         assert_eq!(len4, 3);
         let out4 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out4, "foo");
 
-        // "/" -> ""
         let path5 = CString::new("/").unwrap();
         let len5 = rust_basename(path5.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
         assert_eq!(len5, 0);
         let out5 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out5, "");
 
-        // Empty string
         let len6 = rust_basename(std::ptr::null(), 0, buf.as_mut_ptr(), buf.len());
         assert_eq!(len6, 0);
         let out6 = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
         assert_eq!(out6, "");
+    }
+
+    #[test]
+    fn test_rust_splitpath() {
+        let mut dir_buf = [0 as c_char; 64];
+        let mut file_buf = [0 as c_char; 64];
+        let mut ext_buf = [0 as c_char; 64];
+
+        // "c:\\foo\\bar.txt"
+        let path1 = CString::new("c:\\foo\\bar.txt").unwrap();
+        let res1 = rust_splitpath(
+            path1.as_ptr(),
+            14,
+            dir_buf.as_mut_ptr(),
+            dir_buf.len(),
+            file_buf.as_mut_ptr(),
+            file_buf.len(),
+            ext_buf.as_mut_ptr(),
+            ext_buf.len(),
+        );
+        assert_eq!(res1, 0);
+        assert_eq!(unsafe { CStr::from_ptr(dir_buf.as_ptr()).to_str().unwrap() }, "c:\\foo\\");
+        assert_eq!(unsafe { CStr::from_ptr(file_buf.as_ptr()).to_str().unwrap() }, "bar");
+        assert_eq!(unsafe { CStr::from_ptr(ext_buf.as_ptr()).to_str().unwrap() }, ".txt");
+
+        // "foo/fum/"
+        let path2 = CString::new("foo/fum/").unwrap();
+        rust_splitpath(
+            path2.as_ptr(),
+            8,
+            dir_buf.as_mut_ptr(),
+            dir_buf.len(),
+            file_buf.as_mut_ptr(),
+            file_buf.len(),
+            ext_buf.as_mut_ptr(),
+            ext_buf.len(),
+        );
+        assert_eq!(unsafe { CStr::from_ptr(dir_buf.as_ptr()).to_str().unwrap() }, "foo/fum/");
+        assert_eq!(unsafe { CStr::from_ptr(file_buf.as_ptr()).to_str().unwrap() }, "");
+        assert_eq!(unsafe { CStr::from_ptr(ext_buf.as_ptr()).to_str().unwrap() }, "");
+
+        // "file.ext"
+        let path3 = CString::new("file.ext").unwrap();
+        rust_splitpath(
+            path3.as_ptr(),
+            8,
+            dir_buf.as_mut_ptr(),
+            dir_buf.len(),
+            file_buf.as_mut_ptr(),
+            file_buf.len(),
+            ext_buf.as_mut_ptr(),
+            ext_buf.len(),
+        );
+        assert_eq!(unsafe { CStr::from_ptr(dir_buf.as_ptr()).to_str().unwrap() }, "");
+        assert_eq!(unsafe { CStr::from_ptr(file_buf.as_ptr()).to_str().unwrap() }, "file");
+        assert_eq!(unsafe { CStr::from_ptr(ext_buf.as_ptr()).to_str().unwrap() }, ".ext");
     }
 }
