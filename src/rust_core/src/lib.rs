@@ -1216,4 +1216,21 @@ mod tests {
         assert_eq!(rust_power_of_two(1024), 1024);
         assert_eq!(rust_power_of_two(1025), 2048);
     }
+
+    #[test]
+    fn test_rust_fapproach() {
+        assert_eq!(rust_fapproach(1.0, 1.0, 0.5), 1.0);
+        assert!((rust_fapproach(0.0, 1.0, 0.4) - 0.4).abs() < 1e-6);
+        assert_eq!(rust_fapproach(0.0, 1.0, 1.5), 1.0);
+        assert!((rust_fapproach(1.0, 0.0, 0.4) - 0.6).abs() < 1e-6);
+        assert_eq!(rust_fapproach(1.0, 0.0, 1.5), 0.0);
+    }
+
+    #[test]
+    fn test_rust_fmodfp() {
+        assert_eq!(rust_fmodfp(5.0, 3.0), 2.0);
+        assert_eq!(rust_fmodfp(-1.0, 4.0), 3.0);
+        assert_eq!(rust_fmodfp(0.0, 5.0), 0.0);
+        assert_eq!(rust_fmodfp(5.0, 0.0), 0.0);
+    }
 }
