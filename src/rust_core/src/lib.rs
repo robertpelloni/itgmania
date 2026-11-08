@@ -88,6 +88,99 @@ pub extern "C" fn rust_format_log_location(
     bytes.len() as i32
 }
 
+/// Formats seconds as MM:SS.MsMs (`"%02d:%02d.%02d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_mmss_msms(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let leftover = ((secs - (mins as f32 * 60.0) - (secs_display as f32)) * 100.0) as i32;
+    let leftover_display = std::cmp::min(99, std::cmp::max(0, leftover));
+
+    let formatted = format!("{:02}:{:02}.{:02}", mins, secs_display, leftover_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
+/// Formats seconds as M:SS.MsMs (`"%01d:%02d.%02d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_mss_msms(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let leftover = ((secs - (mins as f32 * 60.0) - (secs_display as f32)) * 100.0) as i32;
+    let leftover_display = std::cmp::min(99, std::cmp::max(0, leftover));
+
+    let formatted = format!("{:01}:{:02}.{:02}", mins, secs_display, leftover_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
+/// Formats seconds as MM:SS.MsMsMs (`"%02d:%02d.%03d"`).
+#[no_mangle]
+pub extern "C" fn rust_seconds_to_mmss_msmsms(
+    secs: f32,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let mins = (secs / 60.0) as i32;
+    let secs_display = (secs % 60.0) as i32;
+    let leftover = ((secs - (mins as f32 * 60.0) - (secs_display as f32)) * 1000.0) as i32;
+    let leftover_display = std::cmp::min(999, std::cmp::max(0, leftover));
+
+    let formatted = format!("{:02}:{:02}.{:03}", mins, secs_display, leftover_display);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
 /// Formats seconds as HH:MM:SS (`"%02d:%02d:%02d"`).
 #[no_mangle]
 pub extern "C" fn rust_seconds_to_hhmmss(
@@ -1518,5 +1611,20 @@ mod tests {
         let len_mss = rust_seconds_to_mss(65.0, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_mss, 4);
         assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "1:05");
+
+        // 65.50 seconds = 01:05.50
+        let len_msms = rust_seconds_to_mmss_msms(65.50, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_msms, 8);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:05.50");
+
+        // 65.50 seconds = 1:05.50
+        let len_mss_msms = rust_seconds_to_mss_msms(65.50, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_mss_msms, 7);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "1:05.50");
+
+        // 65.500 seconds = 01:05.500
+        let len_msmsms = rust_seconds_to_mmss_msmsms(65.50, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_msmsms, 9);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:05.500");
     }
 }
