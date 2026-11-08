@@ -342,6 +342,49 @@ pub extern "C" fn rust_trim_bounds(
     }
 }
 
+/// Converts raw binary `data` of length `len` into a lowercase hexadecimal string.
+/// Returns the number of characters written, or -1 on buffer overflow or null pointers.
+#[no_mangle]
+pub extern "C" fn rust_binary_to_hex(
+    data: *const u8,
+    len: usize,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if data.is_null() || len == 0 {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    if out_buf_len < len * 2 + 1 {
+        return -1;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(data, len) };
+    let to_hex = |n: u8| -> u8 {
+        if n < 10 { b'0' + n } else { b'a' + (n - 10) }
+    };
+
+    for (i, &b) in slice.iter().enumerate() {
+        let hi = b >> 4;
+        let lo = b & 0x0F;
+        unsafe {
+            *out_buf.add(i * 2) = to_hex(hi) as c_char;
+            *out_buf.add(i * 2 + 1) = to_hex(lo) as c_char;
+        }
+    }
+
+    unsafe {
+        *out_buf.add(len * 2) = 0;
+    }
+
+    (len * 2) as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -529,19 +572,36 @@ mod tests {
         let mut end = 0usize;
 
         rust_trim_bounds(text.as_ptr(), 18, trim.as_ptr(), &mut start, &mut end);
-        assert_eq!(start, 4); // points to 'h'
-        assert_eq!(end, 15);  // points after 'd'
+        assert_eq!(start, 4);
+        assert_eq!(end, 15);
 
-        // Fully trimmed string
         let whitespace = CString::new("   \t  ").unwrap();
         rust_trim_bounds(whitespace.as_ptr(), 6, trim.as_ptr(), &mut start, &mut end);
         assert_eq!(start, 6);
         assert_eq!(end, 0);
 
-        // Untrimmed string
         let clean = CString::new("hello").unwrap();
         rust_trim_bounds(clean.as_ptr(), 5, trim.as_ptr(), &mut start, &mut end);
         assert_eq!(start, 0);
         assert_eq!(end, 5);
+    }
+
+    #[test]
+    fn test_rust_binary_to_hex() {
+        let bytes = [0x00u8, 0x12, 0xAB, 0xFF];
+        let mut buf = [0 as c_char; 16];
+        let len = rust_binary_to_hex(bytes.as_ptr(), bytes.len(), buf.as_mut_ptr(), buf.len());
+        assert_eq!(len, 8);
+        let out_str = unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() };
+        assert_eq!(out_str, "0012abff");
+
+        // Empty bytes
+        let len_empty = rust_binary_to_hex(bytes.as_ptr(), 0, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_empty, 0);
+
+        // Buffer too small
+        let mut small_buf = [0 as c_char; 8]; // needs 9 bytes (8 chars + null)
+        let len_small = rust_binary_to_hex(bytes.as_ptr(), bytes.len(), small_buf.as_mut_ptr(), small_buf.len());
+        assert_eq!(len_small, -1);
     }
 }

@@ -113,13 +113,16 @@ bool IsHexVal(const std::string& s) {
 }
 
 std::string BinaryToHex(const void* pData_, size_t iNumBytes) {
-  const unsigned char* pData = (const unsigned char*)pData_;
-  std::string s;
-  for (size_t i = 0; i < iNumBytes; i++) {
-    unsigned val = pData[i];
-    s += ssprintf("%02x", val);
+  if (pData_ == nullptr || iNumBytes == 0) {
+    return "";
   }
-  return s;
+  std::string s(iNumBytes * 2, '\0');
+  int res = rust_binary_to_hex(pData_, iNumBytes, &s[0], s.size() + 1);
+  if (res >= 0) {
+    s.resize(res);
+    return s;
+  }
+  return "";
 }
 
 std::string BinaryToHex(const std::string& sString) {

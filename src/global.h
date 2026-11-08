@@ -68,6 +68,8 @@ bool rust_ends_with(const char* test_str, const char* suffix);
 void rust_trim_bounds(
     const char* data, size_t len, const char* trim_chars, size_t* out_start,
     size_t* out_end);
+int rust_binary_to_hex(
+    const void* data, size_t len, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

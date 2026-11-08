@@ -9,4 +9,5 @@
 - [x] Port CRC32 checksum calculation (`rust_crc32`) to Rust core and wire into `CRC32` in `src/RageUtil.cpp`.
 - [x] Port prefix and suffix string matching (`rust_begins_with`, `rust_ends_with`) to Rust core and wire into `BeginsWith` and `EndsWith` in `src/RageUtil.cpp`.
 - [x] Port string whitespace and custom delimiter trimming (`rust_trim_bounds`) to Rust core and wire into `TrimLeft`, `TrimRight`, and `Trim` in `src/RageUtil.cpp`.
+- [x] Port binary to hex conversion (`rust_binary_to_hex`) to Rust core and wire into `BinaryToHex` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.
