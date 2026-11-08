@@ -768,6 +768,108 @@ pub extern "C" fn rust_fmodfp(mut x: f32, y: f32) -> f32 {
     x % y
 }
 
+/// Formats a numeric string with thousand separators matching StepMania `Commify` semantics.
+/// `num`: input number string
+/// `sep`: separator string (e.g., ",")
+/// `dot`: decimal point marker (e.g., ".")
+/// Writes null-terminated result to `out_buf` and returns length written, or -1 on overflow/null error.
+#[no_mangle]
+pub extern "C" fn rust_commify(
+    num: *const c_char,
+    num_len: usize,
+    sep: *const c_char,
+    sep_len: usize,
+    dot: *const c_char,
+    dot_len: usize,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    if num.is_null() || num_len == 0 {
+        unsafe { *out_buf = 0; }
+        return 0;
+    }
+
+    let num_slice = unsafe { std::slice::from_raw_parts(num as *const u8, num_len) };
+    let sep_slice = if sep.is_null() || sep_len == 0 {
+        b"," as &[u8]
+    } else {
+        unsafe { std::slice::from_raw_parts(sep as *const u8, sep_len) }
+    };
+    let dot_slice = if dot.is_null() || dot_len == 0 {
+        b"." as &[u8]
+    } else {
+        unsafe { std::slice::from_raw_parts(dot as *const u8, dot_len) }
+    };
+
+    let mut num_start = 0usize;
+    let mut num_end = num_len;
+
+    // Find decimal point
+    if dot_slice.len() > 0 && num_len >= dot_slice.len() {
+        for i in 0..=(num_len - dot_slice.len()) {
+            if &num_slice[i..i + dot_slice.len()] == dot_slice {
+                num_end = i;
+                break;
+            }
+        }
+    }
+
+    // Find negative sign
+    if let Some(pos) = num_slice[..num_end].iter().position(|&b| b == b'-') {
+        num_start = pos + 1;
+    }
+
+    let num_size = num_end.saturating_sub(num_start);
+    let commies = if num_size > 0 {
+        (num_size / 3).saturating_sub(if num_size % 3 == 0 { 1 } else { 0 })
+    } else {
+        0
+    };
+
+    if commies == 0 {
+        if num_len + 1 > out_buf_len {
+            return -1;
+        }
+        unsafe {
+            std::ptr::copy_nonoverlapping(num as *const u8, out_buf as *mut u8, num_len);
+            *out_buf.add(num_len) = 0;
+        }
+        return num_len as i32;
+    }
+
+    let commified_len = num_len + (commies * sep_slice.len());
+    if commified_len + 1 > out_buf_len {
+        return -1;
+    }
+
+    let mut dest = 0usize;
+    let mut next_comma = (num_size % 3) + (3 * if num_size % 3 == 0 { 1 } else { 0 }) + num_start;
+
+    for c in 0..num_len {
+        if c == next_comma && c < num_end {
+            unsafe {
+                std::ptr::copy_nonoverlapping(sep_slice.as_ptr(), out_buf.add(dest) as *mut u8, sep_slice.len());
+            }
+            dest += sep_slice.len();
+            next_comma += 3;
+        }
+        unsafe {
+            *out_buf.add(dest) = num_slice[c] as c_char;
+        }
+        dest += 1;
+    }
+
+    unsafe {
+        *out_buf.add(dest) = 0;
+    }
+
+    dest as i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1232,5 +1334,30 @@ mod tests {
         assert_eq!(rust_fmodfp(-1.0, 4.0), 3.0);
         assert_eq!(rust_fmodfp(0.0, 5.0), 0.0);
         assert_eq!(rust_fmodfp(5.0, 0.0), 0.0);
+    }
+
+    #[test]
+    fn test_rust_commify() {
+        let mut buf = [0 as c_char; 64];
+
+        let num1 = CString::new("1000000").unwrap();
+        let sep = CString::new(",").unwrap();
+        let dot = CString::new(".").unwrap();
+        let len1 = rust_commify(num1.as_ptr(), 7, sep.as_ptr(), 1, dot.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len1, 9);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "1,000,000");
+
+        let num2 = CString::new("-1234567.89").unwrap();
+        let len2 = rust_commify(num2.as_ptr(), 11, sep.as_ptr(), 1, dot.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len2, 13);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "-1,234,567.89");
+
+        let num3 = CString::new("500").unwrap();
+        let len3 = rust_commify(num3.as_ptr(), 3, sep.as_ptr(), 1, dot.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len3, 3);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "500");
+
+        let len_null = rust_commify(std::ptr::null(), 0, sep.as_ptr(), 1, dot.as_ptr(), 1, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_null, 0);
     }
 }

@@ -199,38 +199,18 @@ std::string Commify(int iNum) {
 
 std::string Commify(
     const std::string& num, const std::string& sep, const std::string& dot) {
-  size_t num_start = 0;
-  size_t num_end = num.size();
-  size_t dot_pos = num.find(dot);
-  size_t dash_pos = num.find('-');
-  if (dot_pos != std::string::npos) {
-    num_end = dot_pos;
+  if (num.empty()) {
+    return "";
   }
-  if (dash_pos != std::string::npos) {
-    num_start = dash_pos + 1;
+  size_t max_buf_len = num.size() + (num.size() * sep.size()) + 16;
+  std::vector<char> buf(max_buf_len);
+  int len = rust_commify(
+      num.data(), num.size(), sep.data(), sep.size(), dot.data(), dot.size(),
+      buf.data(), buf.size());
+  if (len >= 0) {
+    return std::string(buf.data(), len);
   }
-  size_t num_size = num_end - num_start;
-  size_t commies = (num_size / 3) - (!(num_size % 3));
-  if (commies < 1) {
-    return num;
-  }
-  size_t commified_len = num.size() + (commies * sep.size());
-  std::string ret;
-  ret.resize(commified_len);
-  size_t dest = 0;
-  size_t next_comma = (num_size % 3) + (3 * (!(num_size % 3))) + num_start;
-  for (size_t c = 0; c < num.size(); ++c) {
-    if (c == next_comma && c < num_end) {
-      for (size_t s = 0; s < sep.size(); ++s) {
-        ret[dest] = sep[s];
-        ++dest;
-      }
-      next_comma += 3;
-    }
-    ret[dest] = num[c];
-    ++dest;
-  }
-  return ret;
+  return num;
 }
 
 static LocalizedString NUM_PREFIX("RageUtil", "NumPrefix");

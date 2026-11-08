@@ -88,6 +88,9 @@ bool rust_is_an_int(const char* s, size_t len);
 int rust_power_of_two(int v);
 float rust_fapproach(float val, float other_val, float to_move);
 float rust_fmodfp(float x, float y);
+int rust_commify(
+    const char* num, size_t num_len, const char* sep, size_t sep_len,
+    const char* dot, size_t dot_len, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }
