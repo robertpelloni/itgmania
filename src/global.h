@@ -101,6 +101,8 @@ int rust_seconds_to_mss_msms(float secs, char* out_buf, size_t out_buf_len);
 int rust_seconds_to_mmss_msmsms(float secs, char* out_buf, size_t out_buf_len);
 int rust_microseconds_to_mmss_msms(
     uint64_t usecs, char* out_buf, size_t out_buf_len);
+int rust_microseconds_to_mmss_msmsms(
+    uint64_t usecs, char* out_buf, size_t out_buf_len);
 
 #ifdef __cplusplus
 }

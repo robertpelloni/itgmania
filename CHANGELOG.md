@@ -24,4 +24,4 @@
 - Implemented `rust_pretty_percent` in Rust core (`src/rust_core`) with unit tests and wired into `PrettyPercent` in `src/RageUtil.cpp`.
 - Implemented `rust_seconds_to_hhmmss`, `rust_seconds_to_mmss`, and `rust_seconds_to_mss` in Rust core (`src/rust_core`) with unit tests and wired into `SecondsToHHMMSS`, `SecondsToMMSS`, and `SecondsToMSS` in `src/RageUtil.cpp`.
 - Implemented `rust_seconds_to_mmss_msms`, `rust_seconds_to_mss_msms`, and `rust_seconds_to_mmss_msmsms` in Rust core (`src/rust_core`) with unit tests and wired into `SecondsToMMSSMsMs`, `SecondsToMSSMsMs`, and `SecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.
-- Implemented `rust_microseconds_to_mmss_msms` in Rust core (`src/rust_core`) with unit tests and wired into `MicrosecondsToMMSSMsMs` in `src/RageUtil.cpp`.
+- Implemented `rust_microseconds_to_mmss_msms` and `rust_microseconds_to_mmss_msmsms` in Rust core (`src/rust_core`) with unit tests and wired into `MicrosecondsToMMSSMsMs` and `MicrosecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.

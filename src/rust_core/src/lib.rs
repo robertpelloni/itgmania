@@ -241,6 +241,38 @@ pub extern "C" fn rust_microseconds_to_mmss_msms(
     bytes.len() as i32
 }
 
+/// Formats microseconds as MM:SS.MsMsMs (`"%02llu:%02llu.%03llu"`).
+#[no_mangle]
+pub extern "C" fn rust_microseconds_to_mmss_msmsms(
+    usecs: u64,
+    out_buf: *mut c_char,
+    out_buf_len: usize,
+) -> i32 {
+    if out_buf.is_null() || out_buf_len == 0 {
+        return -1;
+    }
+
+    let total_seconds = usecs / 1_000_000;
+    let mins_display = total_seconds / 60;
+    let secs_display = total_seconds % 60;
+    let leftover_display = (usecs % 1_000_000) / 1_000;
+    let leftover_capped = std::cmp::min(999, leftover_display);
+
+    let formatted = format!("{:02}:{:02}.{:03}", mins_display, secs_display, leftover_capped);
+    let bytes = formatted.as_bytes();
+
+    if bytes.len() + 1 > out_buf_len {
+        return -1;
+    }
+
+    unsafe {
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), out_buf as *mut u8, bytes.len());
+        *out_buf.add(bytes.len()) = 0;
+    }
+
+    bytes.len() as i32
+}
+
 /// Formats seconds as MM:SS (`"%02d:%02d"`).
 #[no_mangle]
 pub extern "C" fn rust_seconds_to_mmss(
@@ -1663,5 +1695,10 @@ mod tests {
         let len_usecs = rust_microseconds_to_mmss_msms(65_500_000, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_usecs, 8);
         assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:05.50");
+
+        // 65,500,000 microseconds = 01:05.500
+        let len_usecs_ms = rust_microseconds_to_mmss_msmsms(65_500_000, buf.as_mut_ptr(), buf.len());
+        assert_eq!(len_usecs_ms, 9);
+        assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:05.500");
     }
 }
