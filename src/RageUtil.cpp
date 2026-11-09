@@ -153,15 +153,19 @@ std::string SecondsToMSSMsMs(float fSecs) {
 }
 
 std::string MicrosecondsToMMSSMsMs(uint64_t usecs) {
+  char buf[32];
+  int len = rust_microseconds_to_mmss_msms(usecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const uint64_t totalSeconds = usecs / 1000000;
   const uint64_t iMinsDisplay = totalSeconds / 60;
   const uint64_t iSecsDisplay = totalSeconds % 60;
   const uint64_t iLeftoverDisplay =
       (usecs % 1000000) / 10000;  // Adjusted for two decimal places
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02" PRIu64 ":%02" PRIu64 ".%02" PRIu64, iMinsDisplay, iSecsDisplay,
       std::min<uint64_t>(99, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string SecondsToMMSSMsMsMs(float fSecs) {
