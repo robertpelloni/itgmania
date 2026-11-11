@@ -1290,8 +1290,9 @@ bool utf8_is_valid(const std::string& s) {
 /* Windows tends to drop garbage BOM characters at the start of UTF-8 text
  * files. Remove them. */
 void utf8_remove_bom(std::string& sLine) {
-  if (!sLine.compare(0, 3, "\xef\xbb\xbf")) {
-    sLine.erase(0, 3);
+  size_t bom_len = rust_utf8_remove_bom(sLine.data(), sLine.size());
+  if (bom_len > 0) {
+    sLine.erase(0, bom_len);
   }
 }
 

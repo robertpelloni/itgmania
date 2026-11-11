@@ -23,4 +23,5 @@
 - [x] Port time string formatters (`rust_seconds_to_hhmmss`, `rust_seconds_to_mmss`, `rust_seconds_to_mss`) to Rust core and wire into `SecondsToHHMMSS`, `SecondsToMMSS`, and `SecondsToMSS` in `src/RageUtil.cpp`.
 - [x] Port millisecond time formatters (`rust_seconds_to_mmss_msms`, `rust_seconds_to_mss_msms`, `rust_seconds_to_mmss_msmsms`) to Rust core and wire into `SecondsToMMSSMsMs`, `SecondsToMSSMsMs`, and `SecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.
 - [x] Port microsecond time formatters (`rust_microseconds_to_mmss_msms`, `rust_microseconds_to_mmss_msmsms`) to Rust core and wire into `MicrosecondsToMMSSMsMs` and `MicrosecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.
+- [x] Port UTF-8 BOM removal (`rust_utf8_remove_bom`) to Rust core and wire into `utf8_remove_bom` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.

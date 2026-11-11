@@ -103,6 +103,7 @@ int rust_microseconds_to_mmss_msms(
     uint64_t usecs, char* out_buf, size_t out_buf_len);
 int rust_microseconds_to_mmss_msmsms(
     uint64_t usecs, char* out_buf, size_t out_buf_len);
+size_t rust_utf8_remove_bom(const char* data, size_t len);
 
 #ifdef __cplusplus
 }

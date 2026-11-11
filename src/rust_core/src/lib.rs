@@ -515,6 +515,22 @@ pub extern "C" fn rust_crc32(mut crc: u32, buf: *const u8, size: usize) -> u32 {
     crc ^ 0xFFFFFFFF
 }
 
+/// Checks if `data` starts with the UTF-8 Byte Order Mark (`\xEF\xBB\xBF`).
+/// Returns the number of BOM bytes to skip (3 if BOM present, 0 otherwise).
+#[no_mangle]
+pub extern "C" fn rust_utf8_remove_bom(data: *const c_char, len: usize) -> usize {
+    if data.is_null() || len < 3 {
+        return 0;
+    }
+
+    let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
+    if slice[0] == 0xEF && slice[1] == 0xBB && slice[2] == 0xBF {
+        3
+    } else {
+        0
+    }
+}
+
 /// Checks if `test_str` starts with `prefix`.
 #[no_mangle]
 pub extern "C" fn rust_begins_with(test_str: *const c_char, prefix: *const c_char) -> bool {
@@ -1700,5 +1716,20 @@ mod tests {
         let len_usecs_ms = rust_microseconds_to_mmss_msmsms(65_500_000, buf.as_mut_ptr(), buf.len());
         assert_eq!(len_usecs_ms, 9);
         assert_eq!(unsafe { CStr::from_ptr(buf.as_ptr()).to_str().unwrap() }, "01:05.500");
+    }
+
+    #[test]
+    fn test_rust_utf8_remove_bom() {
+        assert_eq!(rust_utf8_remove_bom(std::ptr::null(), 0), 0);
+        assert_eq!(rust_utf8_remove_bom(std::ptr::null(), 10), 0);
+
+        let no_bom = CString::new("Hello World").unwrap();
+        assert_eq!(rust_utf8_remove_bom(no_bom.as_ptr(), 11), 0);
+
+        let short_str = CString::new("hi").unwrap();
+        assert_eq!(rust_utf8_remove_bom(short_str.as_ptr(), 2), 0);
+
+        let bom_bytes = [0xEFu8 as i8 as c_char, 0xBBu8 as i8 as c_char, 0xBFu8 as i8 as c_char, b'a' as c_char, b'b' as c_char];
+        assert_eq!(rust_utf8_remove_bom(bom_bytes.as_ptr(), 5), 3);
     }
 }
