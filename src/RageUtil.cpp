@@ -47,79 +47,34 @@ void UnicodeUpperLower(wchar_t*, size_t, const unsigned char*);
 
 void fapproach(float& val, float other_val, float to_move) {
   ASSERT_M(to_move >= 0, ssprintf("to_move: %f < 0", to_move));
-  if (val == other_val) {
-    return;
-  }
-  float fDelta = other_val - val;
-  float fSign = fDelta / std::abs(fDelta);
-  float fToMove = fSign * to_move;
-  if (std::abs(fToMove) > std::abs(fDelta)) {
-    fToMove = fDelta;  // snap
-  }
-  val += fToMove;
+  val = rust_fapproach(val, other_val, to_move);
 }
 
 /* Return a positive x mod y. */
-float fmodfp(float x, float y) {
-  x = std::fmod(x, y); /* x is [-y,y] */
-  x += y;              /* x is [0,y*2] */
-  x = std::fmod(x, y); /* x is [0,y] */
-  return x;
-}
+float fmodfp(float x, float y) { return rust_fmodfp(x, y); }
 
 /* https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2 */
-int power_of_two(int v) {
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;
-
-  /* Always be sure to return a value of at least 1. In the event of any edge
-   * cases, such as a zero or negative input, the returned value will be `1`. */
-  v += (v == 0);
-  return v;
-}
+int power_of_two(int v) { return rust_power_of_two(v); }
 
 bool IsAnInt(const std::string& s) {
-  if (!s.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < s.size(); ++i) {
-    if (s[i] < '0' || s[i] > '9') {
-      return false;
-    }
-  }
-
-  return true;
+  return rust_is_an_int(s.data(), s.size());
 }
 
 bool IsHexVal(const std::string& s) {
-  if (!s.size()) {
-    return false;
-  }
-
-  for (size_t i = 0; i < s.size(); ++i) {
-    if (!(s[i] >= '0' && s[i] <= '9') &&
-        !(toupper(s[i]) >= 'A' && toupper(s[i]) <= 'F')) {
-      return false;
-    }
-  }
-
-  return true;
+  return rust_is_hex_val(s.data(), s.size());
 }
 
 std::string BinaryToHex(const void* pData_, size_t iNumBytes) {
-  const unsigned char* pData = (const unsigned char*)pData_;
-  std::string s;
-  for (size_t i = 0; i < iNumBytes; i++) {
-    unsigned val = pData[i];
-    s += ssprintf("%02x", val);
+  if (pData_ == nullptr || iNumBytes == 0) {
+    return "";
   }
-  return s;
+  std::string s(iNumBytes * 2, '\0');
+  int res = rust_binary_to_hex(pData_, iNumBytes, &s[0], s.size() + 1);
+  if (res >= 0) {
+    s.resize(res);
+    return s;
+  }
+  return "";
 }
 
 std::string BinaryToHex(const std::string& sString) {
@@ -127,23 +82,11 @@ std::string BinaryToHex(const std::string& sString) {
 }
 
 bool HexToBinary(const std::string& s, unsigned char* stringOut) {
-  if (!IsHexVal(s)) {
+  if (stringOut == nullptr) {
     return false;
   }
-
-  for (int i = 0; true; i++) {
-    if ((int)s.size() <= i * 2) {
-      break;
-    }
-    std::string sByte = s.substr(i * 2, 2);
-
-    uint8_t val = 0;
-    if (sscanf(sByte.c_str(), "%hhx", &val) != 1) {
-      return false;
-    }
-    stringOut[i] = val;
-  }
-  return true;
+  int res = rust_hex_to_binary(s.data(), s.size(), stringOut, s.size() / 2);
+  return res >= 0;
 }
 
 bool HexToBinary(const std::string& s, std::string& sOut) {
@@ -168,84 +111,121 @@ float HHMMSSToSeconds(const std::string& sHHMMSS) {
 }
 
 std::string SecondsToHHMMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_hhmmss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02d:%02d:%02d", iMinsDisplay / 60, iMinsDisplay % 60, iSecsDisplay);
-  return sReturn;
 }
 
 std::string SecondsToMMSSMsMs(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mmss_msms(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
   const int iLeftoverDisplay =
       static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 100);
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02d:%02d.%02d", iMinsDisplay, iSecsDisplay,
       std::min(99, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string SecondsToMSSMsMs(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mss_msms(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
   const int iLeftoverDisplay =
       static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 100);
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%01d:%02d.%02d", iMinsDisplay, iSecsDisplay,
       std::min(99, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string MicrosecondsToMMSSMsMs(uint64_t usecs) {
+  char buf[32];
+  int len = rust_microseconds_to_mmss_msms(usecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const uint64_t totalSeconds = usecs / 1000000;
   const uint64_t iMinsDisplay = totalSeconds / 60;
   const uint64_t iSecsDisplay = totalSeconds % 60;
   const uint64_t iLeftoverDisplay =
       (usecs % 1000000) / 10000;  // Adjusted for two decimal places
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02" PRIu64 ":%02" PRIu64 ".%02" PRIu64, iMinsDisplay, iSecsDisplay,
       std::min<uint64_t>(99, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string SecondsToMMSSMsMsMs(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mmss_msmsms(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
   const int iLeftoverDisplay =
       static_cast<int>((fSecs - iMinsDisplay * 60 - iSecsDisplay) * 1000);
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02d:%02d.%03d", iMinsDisplay, iSecsDisplay,
       std::min(999, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string MicrosecondsToMMSSMsMsMs(uint64_t usecs) {
+  char buf[32];
+  int len = rust_microseconds_to_mmss_msmsms(usecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const uint64_t totalSeconds = usecs / 1000000;
   const uint64_t iMinsDisplay = totalSeconds / 60;
   const uint64_t iSecsDisplay = totalSeconds % 60;
   const uint64_t iLeftoverDisplay = (usecs % 1000000) / 1000;
-  std::string sReturn = ssprintf(
+  return ssprintf(
       "%02" PRIu64 ":%02" PRIu64 ".%03" PRIu64, iMinsDisplay, iSecsDisplay,
       std::min<uint64_t>(999, iLeftoverDisplay));
-  return sReturn;
 }
 
 std::string SecondsToMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf("%01d:%02d", iMinsDisplay, iSecsDisplay);
-  return sReturn;
+  return ssprintf("%01d:%02d", iMinsDisplay, iSecsDisplay);
 }
 
 std::string SecondsToMMSS(float fSecs) {
+  char buf[32];
+  int len = rust_seconds_to_mmss(fSecs, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   const int iMinsDisplay = static_cast<int>(fSecs / 60);
   const int iSecsDisplay = static_cast<int>(fmod(fSecs, 60));
-  std::string sReturn = ssprintf("%02d:%02d", iMinsDisplay, iSecsDisplay);
-  return sReturn;
+  return ssprintf("%02d:%02d", iMinsDisplay, iSecsDisplay);
 }
 
 std::string PrettyPercent(float fNumerator, float fDenominator) {
+  char buf[32];
+  int len = rust_pretty_percent(fNumerator, fDenominator, buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
+  }
   return ssprintf("%0.2f%%", fNumerator / fDenominator * 100);
 }
 
@@ -256,38 +236,18 @@ std::string Commify(int iNum) {
 
 std::string Commify(
     const std::string& num, const std::string& sep, const std::string& dot) {
-  size_t num_start = 0;
-  size_t num_end = num.size();
-  size_t dot_pos = num.find(dot);
-  size_t dash_pos = num.find('-');
-  if (dot_pos != std::string::npos) {
-    num_end = dot_pos;
+  if (num.empty()) {
+    return "";
   }
-  if (dash_pos != std::string::npos) {
-    num_start = dash_pos + 1;
+  size_t max_buf_len = num.size() + (num.size() * sep.size()) + 16;
+  std::vector<char> buf(max_buf_len);
+  int len = rust_commify(
+      num.data(), num.size(), sep.data(), sep.size(), dot.data(), dot.size(),
+      buf.data(), buf.size());
+  if (len >= 0) {
+    return std::string(buf.data(), len);
   }
-  size_t num_size = num_end - num_start;
-  size_t commies = (num_size / 3) - (!(num_size % 3));
-  if (commies < 1) {
-    return num;
-  }
-  size_t commified_len = num.size() + (commies * sep.size());
-  std::string ret;
-  ret.resize(commified_len);
-  size_t dest = 0;
-  size_t next_comma = (num_size % 3) + (3 * (!(num_size % 3))) + num_start;
-  for (size_t c = 0; c < num.size(); ++c) {
-    if (c == next_comma && c < num_end) {
-      for (size_t s = 0; s < sep.size(); ++s) {
-        ret[dest] = sep[s];
-        ++dest;
-      }
-      next_comma += 3;
-    }
-    ret[dest] = num[c];
-    ++dest;
-  }
-  return ret;
+  return num;
 }
 
 static LocalizedString NUM_PREFIX("RageUtil", "NumPrefix");
@@ -655,28 +615,21 @@ void splitpath(
     const std::string& sPath, std::string& sDir, std::string& sFilename,
     std::string& sExt) {
   sDir = sFilename = sExt = "";
+  if (sPath.empty()) {
+    return;
+  }
 
-  std::vector<std::string> asMatches;
+  std::vector<char> dir_buf(sPath.size() + 1);
+  std::vector<char> file_buf(sPath.size() + 1);
+  std::vector<char> ext_buf(sPath.size() + 1);
 
-  /*
-   * One level of escapes for the regex, one for C. Ew.
-   * This is really:
-   * ^(.*[\\/])?(.*)$
-   */
-  static Regex sep("^(.*[\\\\/])?(.*)$");
-  bool bCheck = sep.Compare(sPath, asMatches);
-  ASSERT(bCheck);
-
-  sDir = asMatches[0];
-  const std::string sBase = asMatches[1];
-
-  /* ^(.*)(\.[^\.]+)$ */
-  static Regex SplitExt("^(.*)(\\.[^\\.]+)$");
-  if (SplitExt.Compare(sBase, asMatches)) {
-    sFilename = asMatches[0];
-    sExt = asMatches[1];
-  } else {
-    sFilename = sBase;
+  int res = rust_splitpath(
+      sPath.data(), sPath.size(), dir_buf.data(), dir_buf.size(),
+      file_buf.data(), file_buf.size(), ext_buf.data(), ext_buf.size());
+  if (res == 0) {
+    sDir = dir_buf.data();
+    sFilename = file_buf.data();
+    sExt = ext_buf.data();
   }
 }
 
@@ -700,17 +653,15 @@ std::string SetExtension(const std::string& sPath, const std::string& sExt) {
 }
 
 std::string GetExtension(const std::string& sPath) {
-  size_t pos = sPath.rfind('.');
-  if (pos == sPath.npos) {
+  if (sPath.empty()) {
     return std::string();
   }
-
-  size_t slash = sPath.find('/', pos);
-  if (slash != sPath.npos) {
-    return std::string(); /* rare: path/dir.ext/fn */
+  char buf[256];
+  int len = rust_get_extension(sPath.data(), sPath.size(), buf, sizeof(buf));
+  if (len > 0) {
+    return std::string(buf, len);
   }
-
-  return sPath.substr(pos + 1, sPath.size() - pos + 1);
+  return std::string();
 }
 
 std::string GetFileNameWithoutExtension(const std::string& sPath) {
@@ -842,32 +793,7 @@ std::string GetCwd() {
  *   http://www.faqs.org/rfcs/rfc1952.html
  */
 void CRC32(unsigned int& iCRC, const void* pVoidBuffer, size_t iSize) {
-  static unsigned tab[256];
-  static std::atomic<bool> initted = false;
-  if (!initted.load(std::memory_order_acquire)) {
-    const unsigned POLY = 0xEDB88320;
-
-    for (int i = 0; i < 256; ++i) {
-      tab[i] = i;
-      for (int j = 0; j < 8; ++j) {
-        if (tab[i] & 1) {
-          tab[i] = (tab[i] >> 1) ^ POLY;
-        } else {
-          tab[i] >>= 1;
-        }
-      }
-    }
-    initted.store(true, std::memory_order_release);
-  }
-
-  iCRC ^= 0xFFFFFFFF;
-
-  const char* pBuffer = (const char*)pVoidBuffer;
-  for (unsigned i = 0; i < iSize; ++i) {
-    iCRC = (iCRC >> 8) ^ tab[(iCRC ^ pBuffer[i]) & 0xFF];
-  }
-
-  iCRC ^= 0xFFFFFFFF;
+  iCRC = rust_crc32(iCRC, pVoidBuffer, iSize);
 }
 
 unsigned int GetHashForString(const std::string& s) {
@@ -984,68 +910,65 @@ void FilterHighErrorPoints(
 }
 
 void TrimLeft(std::string& sStr, const char* s) {
-  int n = 0;
-  while (n < int(sStr.size()) && strchr(s, sStr[n])) {
-    n++;
+  if (sStr.empty()) {
+    return;
   }
-
-  sStr.erase(sStr.begin(), sStr.begin() + n);
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  sStr.erase(0, start);
 }
 
 void TrimRight(std::string& sStr, const char* s) {
-  int n = sStr.size();
-  while (n > 0 && strchr(s, sStr[n - 1])) {
-    n--;
+  if (sStr.empty()) {
+    return;
   }
-
-  /* Delete from n to the end. If n == sStr.size(), nothing is deleted;
-   * if n == 0, the whole string is erased. */
-  sStr.erase(sStr.begin() + n, sStr.end());
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  sStr.erase(end);
 }
 
 void Trim(std::string& sStr, const char* s) {
-  std::string::size_type b = 0, e = sStr.size();
-  while (b < e && strchr(s, sStr[b])) {
-    ++b;
+  if (sStr.empty()) {
+    return;
   }
-  while (b < e && strchr(s, sStr[e - 1])) {
-    --e;
+  size_t start = 0, end = sStr.size();
+  rust_trim_bounds(sStr.data(), sStr.size(), s, &start, &end);
+  if (start >= end) {
+    sStr.clear();
+  } else {
+    sStr.assign(sStr.substr(start, end - start));
   }
-  sStr.assign(sStr.substr(b, e - b));
 }
 
 void StripCrnl(std::string& s) {
-  while (s.size() && (s[s.size() - 1] == '\r' || s[s.size() - 1] == '\n')) {
-    s.erase(s.size() - 1);
+  if (s.empty()) {
+    return;
   }
+  size_t new_len = rust_strip_crnl(&s[0], s.size());
+  s.resize(new_len);
 }
 
 bool BeginsWith(const std::string& sTestThis, const std::string& sBeginning) {
   ASSERT(!sBeginning.empty());
-  return sTestThis.compare(0, sBeginning.length(), sBeginning) == 0;
+  return rust_begins_with(sTestThis.c_str(), sBeginning.c_str());
 }
 
 bool EndsWith(const std::string& sTestThis, const std::string& sEnding) {
   ASSERT(!sEnding.empty());
-  if (sTestThis.size() < sEnding.size()) {
-    return false;
-  }
-  return sTestThis.compare(
-             sTestThis.length() - sEnding.length(), sEnding.length(),
-             sEnding) == 0;
+  return rust_ends_with(sTestThis.c_str(), sEnding.c_str());
 }
 
 std::string URLEncode(const std::string& sStr) {
-  std::string sOutput;
-  for (unsigned k = 0; k < sStr.size(); k++) {
-    char t = sStr[k];
-    if (t >= '!' && t <= 'z') {
-      sOutput += t;
-    } else {
-      sOutput += "%" + ssprintf("%02X", t);
-    }
+  if (sStr.empty()) {
+    return "";
   }
-  return sOutput;
+  // Max possible size is 3 times input size + 1 for null terminator
+  std::vector<char> buf(sStr.size() * 3 + 1);
+  int written = rust_url_encode(sStr.c_str(), buf.data(), buf.size());
+  if (written >= 0) {
+    return std::string(buf.data(), written);
+  }
+  return sStr;
 }
 
 // remove various version control-related files
@@ -1367,8 +1290,9 @@ bool utf8_is_valid(const std::string& s) {
 /* Windows tends to drop garbage BOM characters at the start of UTF-8 text
  * files. Remove them. */
 void utf8_remove_bom(std::string& sLine) {
-  if (!sLine.compare(0, 3, "\xef\xbb\xbf")) {
-    sLine.erase(0, 3);
+  size_t bom_len = rust_utf8_remove_bom(sLine.data(), sLine.size());
+  if (bom_len > 0) {
+    sLine.erase(0, bom_len);
   }
 }
 
@@ -1404,14 +1328,11 @@ static int UnicodeDoUpper(
  * characters of the same UTF-8 length, so we never have to move the whole
  * string. This is optimized for strings that have no non-ASCII characters. */
 void MakeUpper(char* p, size_t iLen) {
+  rust_make_upper_ascii(p, iLen);
   char* pStart = p;
   char* pEnd = p + iLen;
   while (p < pEnd) {
-    // Fast path:
     if (likely(!(*p & 0x80))) {
-      if (unlikely(*p >= 'a' && *p <= 'z')) {
-        *p += 'A' - 'a';
-      }
       ++p;
       continue;
     }
@@ -1422,14 +1343,11 @@ void MakeUpper(char* p, size_t iLen) {
 }
 
 void MakeLower(char* p, size_t iLen) {
+  rust_make_lower_ascii(p, iLen);
   char* pStart = p;
   char* pEnd = p + iLen;
   while (p < pEnd) {
-    // Fast path:
     if (likely(!(*p & 0x80))) {
-      if (unlikely(*p >= 'A' && *p <= 'Z')) {
-        *p -= 'A' - 'a';
-      }
       ++p;
       continue;
     }
@@ -1720,19 +1638,12 @@ std::string WcharDisplayText(wchar_t c) {
  * a/b/c/ -> c
  */
 std::string Basename(const std::string& sDir) {
-  size_t iEnd = sDir.find_last_not_of("/\\");
-  if (iEnd == sDir.npos) {
-    return std::string();
+  std::vector<char> buf(sDir.size() + 1);
+  int len = rust_basename(sDir.data(), sDir.size(), buf.data(), buf.size());
+  if (len > 0) {
+    return std::string(buf.data(), len);
   }
-
-  size_t iStart = sDir.find_last_of("/\\", iEnd);
-  if (iStart == sDir.npos) {
-    iStart = 0;
-  } else {
-    ++iStart;
-  }
-
-  return sDir.substr(iStart, iEnd - iStart + 1);
+  return std::string();
 }
 
 /* Return all but the last named component of dir:
@@ -1744,27 +1655,12 @@ std::string Basename(const std::string& sDir) {
  * / -> /
  */
 std::string Dirname(const std::string& dir) {
-  // Special case: "/" -> "/".
-  if (dir.size() == 1 && dir[0] == '/') {
-    return "/";
+  std::vector<char> buf(dir.size() + 4);
+  int len = rust_dirname(dir.data(), dir.size(), buf.data(), buf.size());
+  if (len > 0) {
+    return std::string(buf.data(), len);
   }
-
-  int pos = dir.size() - 1;
-  // Skip trailing slashes.
-  while (pos >= 0 && dir[pos] == '/') {
-    --pos;
-  }
-
-  // Skip the last component.
-  while (pos >= 0 && dir[pos] != '/') {
-    --pos;
-  }
-
-  if (pos < 0) {
-    return "./";
-  }
-
-  return dir.substr(0, pos + 1);
+  return "./";
 }
 
 std::string Capitalize(const std::string& s) {

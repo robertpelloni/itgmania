@@ -445,11 +445,10 @@ bool BeginsWith(const std::string& sTestThis, const std::string& sBeginning);
 bool EndsWith(const std::string& sTestThis, const std::string& sEnding);
 std::string URLEncode(const std::string& sStr);
 
-void StripCvsAndSvn(
-    std::vector<std::string>&
-        vs);  // Removes various versioning system metafolders.
-void StripMacResourceForks(
-    std::vector<std::string>& vs);  // Removes files starting with "._"
+// Removes various versioning system metafolders.
+void StripCvsAndSvn(std::vector<std::string>& vs);
+// Removes files starting with "._"
+void StripMacResourceForks(std::vector<std::string>& vs);
 
 std::string DerefRedir(const std::string& sPath);
 bool GetFileContents(
