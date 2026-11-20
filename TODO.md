@@ -3,5 +3,25 @@
 - [x] Enhance Rust core crash handler `rust_sm_crash` and add unit tests.
 - [x] Port location formatting in `ShowWarningOrTrace` (`rust_format_log_location`) to Rust core.
 - [x] Port timer delta and arithmetic calculations in `RageTimer` (`rust_timer_difference`, `rust_timer_sum`) to Rust core.
-- [x] Port numeric clamping utilities (`rust_clamp_f32`, `rust_clamp_f64`, `rust_clamp_i32`) to Rust core and wire into `rage_clamp` in `src/RageUtil.h`.
+- [x] Implement numeric clamping utilities (`rust_clamp_f32`, `rust_clamp_f64`, `rust_clamp_i32`) in Rust core while preserving C++ inline templates in `RageUtil.h` for hot-path speed.
+- [x] Port URL encoding logic (`rust_url_encode`) to Rust core and wire into `URLEncode` in `src/RageUtil.cpp`.
+- [x] Port trailing newline/carriage return stripping (`rust_strip_crnl`) to Rust core and wire into `StripCrnl` in `src/RageUtil.cpp`.
+- [x] Port CRC32 checksum calculation (`rust_crc32`) to Rust core and wire into `CRC32` in `src/RageUtil.cpp`.
+- [x] Port prefix and suffix string matching (`rust_begins_with`, `rust_ends_with`) to Rust core and wire into `BeginsWith` and `EndsWith` in `src/RageUtil.cpp`.
+- [x] Port string whitespace and custom delimiter trimming (`rust_trim_bounds`) to Rust core and wire into `TrimLeft`, `TrimRight`, and `Trim` in `src/RageUtil.cpp`.
+- [x] Port binary to hex conversion (`rust_binary_to_hex`) to Rust core and wire into `BinaryToHex` in `src/RageUtil.cpp`.
+- [x] Port hex validation and decoding (`rust_is_hex_val`, `rust_hex_to_binary`) to Rust core and wire into `IsHexVal` and `HexToBinary` in `src/RageUtil.cpp`.
+- [x] Port path extension extraction (`rust_get_extension`) to Rust core and wire into `GetExtension` in `src/RageUtil.cpp`.
+- [x] Port directory path extraction (`rust_dirname`) to Rust core and wire into `Dirname` in `src/RageUtil.cpp`.
+- [x] Port ASCII uppercase and lowercase transformations (`rust_make_upper_ascii`, `rust_make_lower_ascii`) to Rust core and wire into `MakeUpper` and `MakeLower` in `src/RageUtil.cpp`.
+- [x] Port path basename extraction (`rust_basename`) to Rust core and wire into `Basename` in `src/RageUtil.cpp`.
+- [x] Port path components decomposition (`rust_splitpath`) to Rust core and wire into `splitpath` in `src/RageUtil.cpp`.
+- [x] Port integer string validation (`rust_is_an_int`) and power of two rounding (`rust_power_of_two`) to Rust core and wire into `IsAnInt` and `power_of_two` in `src/RageUtil.cpp`.
+- [x] Port floating-point approach (`rust_fapproach`) and positive modulus (`rust_fmodfp`) to Rust core and wire into `fapproach` and `fmodfp` in `src/RageUtil.cpp`.
+- [x] Port number commification (`rust_commify`) to Rust core and wire into `Commify` in `src/RageUtil.cpp`.
+- [x] Port percentage formatting (`rust_pretty_percent`) to Rust core and wire into `PrettyPercent` in `src/RageUtil.cpp`.
+- [x] Port time string formatters (`rust_seconds_to_hhmmss`, `rust_seconds_to_mmss`, `rust_seconds_to_mss`) to Rust core and wire into `SecondsToHHMMSS`, `SecondsToMMSS`, and `SecondsToMSS` in `src/RageUtil.cpp`.
+- [x] Port millisecond time formatters (`rust_seconds_to_mmss_msms`, `rust_seconds_to_mss_msms`, `rust_seconds_to_mmss_msmsms`) to Rust core and wire into `SecondsToMMSSMsMs`, `SecondsToMSSMsMs`, and `SecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.
+- [x] Port microsecond time formatters (`rust_microseconds_to_mmss_msms`, `rust_microseconds_to_mmss_msmsms`) to Rust core and wire into `MicrosecondsToMMSSMsMs` and `MicrosecondsToMMSSMsMsMs` in `src/RageUtil.cpp`.
+- [x] Port UTF-8 BOM removal (`rust_utf8_remove_bom`) to Rust core and wire into `utf8_remove_bom` in `src/RageUtil.cpp`.
 - [ ] Port additional utility and logging functions to Rust.

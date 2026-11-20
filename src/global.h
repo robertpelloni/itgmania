@@ -60,6 +60,50 @@ void rust_timer_sum(
 float rust_clamp_f32(float val, float l, float h);
 double rust_clamp_f64(double val, double l, double h);
 int32_t rust_clamp_i32(int32_t val, int32_t l, int32_t h);
+int rust_url_encode(const char* input, char* out_buf, size_t out_buf_len);
+size_t rust_strip_crnl(char* data, size_t len);
+uint32_t rust_crc32(uint32_t initial_crc, const void* buf, size_t size);
+bool rust_begins_with(const char* test_str, const char* prefix);
+bool rust_ends_with(const char* test_str, const char* suffix);
+void rust_trim_bounds(
+    const char* data, size_t len, const char* trim_chars, size_t* out_start,
+    size_t* out_end);
+int rust_binary_to_hex(
+    const void* data, size_t len, char* out_buf, size_t out_buf_len);
+bool rust_is_hex_val(const char* str_ptr, size_t len);
+int rust_hex_to_binary(
+    const char* hex_str, size_t len, uint8_t* out_buf, size_t out_buf_len);
+int rust_get_extension(
+    const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
+int rust_dirname(
+    const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
+int rust_basename(
+    const char* path, size_t path_len, char* out_buf, size_t out_buf_len);
+void rust_make_upper_ascii(char* data, size_t len);
+void rust_make_lower_ascii(char* data, size_t len);
+int rust_splitpath(
+    const char* path, size_t path_len, char* dir_buf, size_t dir_buf_len,
+    char* file_buf, size_t file_buf_len, char* ext_buf, size_t ext_buf_len);
+bool rust_is_an_int(const char* s, size_t len);
+int rust_power_of_two(int v);
+float rust_fapproach(float val, float other_val, float to_move);
+float rust_fmodfp(float x, float y);
+int rust_commify(
+    const char* num, size_t num_len, const char* sep, size_t sep_len,
+    const char* dot, size_t dot_len, char* out_buf, size_t out_buf_len);
+int rust_pretty_percent(
+    float numerator, float denominator, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_hhmmss(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mmss(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mss(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mmss_msms(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mss_msms(float secs, char* out_buf, size_t out_buf_len);
+int rust_seconds_to_mmss_msmsms(float secs, char* out_buf, size_t out_buf_len);
+int rust_microseconds_to_mmss_msms(
+    uint64_t usecs, char* out_buf, size_t out_buf_len);
+int rust_microseconds_to_mmss_msmsms(
+    uint64_t usecs, char* out_buf, size_t out_buf_len);
+size_t rust_utf8_remove_bom(const char* data, size_t len);
 
 #ifdef __cplusplus
 }
